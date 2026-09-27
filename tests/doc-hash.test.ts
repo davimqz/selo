@@ -21,9 +21,9 @@ describe("document hash canonicalization", () => {
   });
 
   it("normalizes CNPJ for invoices and CPRs", () => {
-    expect(canonicalIssuer(DocType.CommercialInvoice, "12.345.678/0001-90")).toBe(
-      "12345678000190",
-    );
+    expect(
+      canonicalIssuer(DocType.CommercialInvoice, "12.345.678/0001-90"),
+    ).toBe("12345678000190");
     const a = docHash({
       docType: DocType.Cpr,
       issuer: "12.345.678/0001-90",

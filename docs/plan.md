@@ -179,7 +179,7 @@ dispute window, attester replacement.
 ### 2.4 Errors (`SeloError`)
 
 `InvalidAmount`, `InvalidBps`, `InvalidSchedule`, `InvalidMilestone`, `ShippedNotRequired`,
-`MilestoneNotRequired`, `MilestoneAlreadyAttested`, `InvalidAttesters`, `InvalidParties`, `UnauthorizedAttester`,
+`MilestoneNotRequired`, `InvalidAttesters`, `InvalidParties`, `UnauthorizedAttester`,
 `ShipmentDeadlinePassed`, `NotShipped`, `InvalidDocumentType`, `DocumentAlreadyRegistered`,
 `DocumentTypeAlreadyOnDeal`, `BillOfLadingMismatch`, `AdvanceExceedsLimit`, `FinancierIsParty`,
 `MissingMilestones`, `PaymentNotDue`, `PaymentDue`, `DealExpired`, `DealNotExpired`,
