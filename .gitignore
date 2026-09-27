@@ -1,0 +1,30 @@
+# Anchor / Rust
+.anchor
+target
+**/*.rs.bk
+test-ledger
+.surfpool
+
+# Node
+node_modules
+.yarn
+.pnpm-store
+
+# Next.js
+app/.next
+app/out
+app/next-env.d.ts
+*.tsbuildinfo
+
+# Env and secrets — never commit keys
+.env
+.env.*
+!.env.example
+*-keypair.json
+id.json
+scripts/.localnet.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode
