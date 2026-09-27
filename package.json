@@ -7,32 +7,32 @@
   "engines": {
     "node": ">=24"
   },
+  "type": "module",
   "scripts": {
-    "build:program": "anchor build",
-    "test:ts": "ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.test.ts\"",
-    "test:program": "anchor build && pnpm run test:ts",
+    "build:program": "NO_DNA=1 anchor build",
+    "codegen": "node scripts/codegen.mjs",
+    "test:ts": "vitest run",
+    "test:program": "NO_DNA=1 anchor build && pnpm run codegen && pnpm run test:ts",
+    "typecheck": "tsc --noEmit && pnpm -r --filter sdk --filter scripts typecheck",
     "lint": "pnpm run lint:ts && pnpm run lint:rs && pnpm --filter app lint",
-    "lint:ts": "prettier --check \"tests/**/*.ts\" \"scripts/src/**/*.ts\"",
+    "lint:ts": "prettier --check \"tests/**/*.ts\" \"scripts/**/*.{ts,mjs}\" \"sdk/src/*.ts\"",
     "lint:rs": "cargo fmt --all -- --check && cargo clippy --all-targets -- -D warnings",
-    "format": "prettier --write \"tests/**/*.ts\" \"scripts/src/**/*.ts\" && cargo fmt --all",
-    "localnet": "solana-test-validator --reset --quiet",
+    "format": "prettier --write \"tests/**/*.ts\" \"scripts/**/*.{ts,mjs}\" \"sdk/src/*.ts\" && cargo fmt --all",
+    "localnet": "NO_DNA=1 surfpool start --no-tui",
     "usdc:mock": "pnpm --filter scripts usdc:mock"
   },
-  "dependencies": {
-    "@anchor-lang/core": "1.2.0",
-    "@solana/spl-token": "0.4.15",
-    "@solana/web3.js": "1.99.0"
-  },
   "devDependencies": {
-    "@types/bn.js": "^5.1.6",
-    "@types/chai": "^4.3.20",
-    "@types/mocha": "^10.0.10",
+    "@codama/nodes-from-anchor": "1.5.6",
+    "@codama/renderers-js": "2.5.0",
+    "@selo/sdk": "workspace:*",
+    "@solana-program/system": "0.15.0",
+    "@solana-program/token": "0.17.0",
+    "@solana/kit": "8.3.0",
     "@types/node": "^24",
-    "chai": "^4.5.0",
-    "litesvm": "0.8.0",
-    "mocha": "^10.8.2",
+    "codama": "1.11.0",
+    "litesvm": "1.4.1",
     "prettier": "^3.6.2",
-    "ts-mocha": "^11.1.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.2"
   }
 }

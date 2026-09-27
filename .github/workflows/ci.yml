@@ -67,9 +67,15 @@ jobs:
 
       - name: Build program
         # The program keypair is not committed; CI builds with the declared ID only.
-        run: anchor build --ignore-keys
+        run: NO_DNA=1 anchor build --ignore-keys
 
-      - name: Tests (LiteSVM)
+      - name: Generated client is up to date
+        run: pnpm run codegen && git diff --exit-code -- sdk/src/generated
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Tests (vitest + LiteSVM)
         run: pnpm run test:ts
 
   app:

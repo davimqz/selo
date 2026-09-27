@@ -7,8 +7,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@solana/spl-token": "0.4.15",
-    "@solana/web3.js": "1.99.0"
+    "@selo/sdk": "workspace:*",
+    "@solana-program/system": "0.15.0",
+    "@solana-program/token": "0.17.0",
+    "@solana/kit": "8.3.0"
   },
   "devDependencies": {
     "@types/node": "^24",

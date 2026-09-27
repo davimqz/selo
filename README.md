@@ -25,10 +25,11 @@ chmod +x ~/.local/bin/anchor
 corepack enable && pnpm install
 
 # 4. Build + test
-pnpm test:program      # anchor build && LiteSVM tests
+pnpm test:program      # anchor build → Codama client (sdk/src/generated) → vitest on LiteSVM
 pnpm lint              # prettier + rustfmt + clippy + eslint
 
-# 5. Local validator with a mock USDC mint
+# 5. Local network (Surfpool) with a mock USDC mint
+curl -sL https://run.surfpool.run/ | bash   # once
 solana-keygen new --no-bip39-passphrase   # once, if you have no ~/.config/solana/id.json
 pnpm localnet          # terminal 1
 pnpm usdc:mock         # terminal 2 → writes scripts/.localnet.json
