@@ -17,7 +17,9 @@ import {
   attest,
   cancelIx,
   createDeal,
+  createDealIx,
   eventsOf,
+  expectAlreadyInUse,
   expectError,
   fetchDeal,
   fundedDeal,
@@ -29,6 +31,7 @@ import {
   setup,
   shippedDeal,
   tokenBalance,
+  USDC,
 } from "./helpers/selo";
 
 describe("refund", () => {
@@ -117,14 +120,10 @@ describe("cancel", () => {
     ctx = await setup();
   });
 
-  it("seller cancels an unfunded deal and gets the rent back", async () => {
+  it("seller cancels an unfunded deal", async () => {
     const { deal } = await createDeal(ctx);
-    const res = await sendOk(
-      ctx.svm,
-      [cancelIx(ctx, deal, ctx.seller)],
-      ctx.seller,
-    );
-    expect(accountExists(ctx.svm, deal)).toBe(false);
+    const res = await sendOk(ctx.svm, [cancelIx(deal, ctx.seller)], ctx.seller);
+    expect(fetchDeal(ctx.svm, deal).status).toBe(DealStatus.Cancelled);
     expect(eventsOf(res, parseDealCancelledEvent)[0].by).toBe(
       ctx.seller.address,
     );
@@ -132,14 +131,43 @@ describe("cancel", () => {
 
   it("buyer can cancel an unfunded deal", async () => {
     const { deal } = await createDeal(ctx);
-    await sendOk(ctx.svm, [cancelIx(ctx, deal, ctx.buyer)], ctx.buyer);
-    expect(accountExists(ctx.svm, deal)).toBe(false);
+    await sendOk(ctx.svm, [cancelIx(deal, ctx.buyer)], ctx.buyer);
+    expect(fetchDeal(ctx.svm, deal).status).toBe(DealStatus.Cancelled);
+  });
+
+  it("audit F-1: a cancelled deal address cannot be re-created with other terms", async () => {
+    const reviewed = await createDealIx(ctx);
+    await sendOk(ctx.svm, [reviewed.ix], ctx.seller);
+    const swapped = await createDealIx(ctx, {
+      dealId: reviewed.terms.dealId,
+      amount: 900_000n * USDC,
+      attesters: [{ key: ctx.stranger.address, milestones: 0x0f }],
+    });
+    expect(swapped.deal).toBe(reviewed.deal);
+
+    expectAlreadyInUse(
+      await send(
+        ctx.svm,
+        [cancelIx(reviewed.deal, ctx.seller), swapped.ix],
+        ctx.seller,
+      ),
+    );
+    expect(fetchDeal(ctx.svm, reviewed.deal).amount).toBe(AMOUNT);
+  });
+
+  it("cannot cancel twice", async () => {
+    const { deal } = await createDeal(ctx);
+    await sendOk(ctx.svm, [cancelIx(deal, ctx.seller)], ctx.seller);
+    expectError(
+      await send(ctx.svm, [cancelIx(deal, ctx.buyer)], ctx.buyer),
+      SELO_ERROR__INVALID_STATUS,
+    );
   });
 
   it("rejects a third party", async () => {
     const { deal } = await createDeal(ctx);
     expectError(
-      await send(ctx.svm, [cancelIx(ctx, deal, ctx.stranger)], ctx.stranger),
+      await send(ctx.svm, [cancelIx(deal, ctx.stranger)], ctx.stranger),
       SELO_ERROR__INVALID_PARTIES,
     );
   });
@@ -147,7 +175,7 @@ describe("cancel", () => {
   it("rejects cancelling after funding", async () => {
     const { deal } = await fundedDeal(ctx);
     expectError(
-      await send(ctx.svm, [cancelIx(ctx, deal, ctx.seller)], ctx.seller),
+      await send(ctx.svm, [cancelIx(deal, ctx.seller)], ctx.seller),
       SELO_ERROR__INVALID_STATUS,
     );
     expect(fetchDeal(ctx.svm, deal).status).toBe(DealStatus.Funded);

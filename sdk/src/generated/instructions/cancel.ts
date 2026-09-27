@@ -52,7 +52,6 @@ export type CancelInstruction<
   TProgram extends string = typeof SELO_PROGRAM_ADDRESS,
   TAccountAuthority extends string | AccountMeta<string> = string,
   TAccountDeal extends string | AccountMeta<string> = string,
-  TAccountSeller extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
@@ -65,9 +64,6 @@ export type CancelInstruction<
       TAccountDeal extends string
         ? WritableAccount<TAccountDeal>
         : TAccountDeal,
-      TAccountSeller extends string
-        ? WritableAccount<TAccountSeller>
-        : TAccountSeller,
       ...TRemainingAccounts,
     ]
   >;
@@ -102,20 +98,17 @@ export function getCancelInstructionDataCodec(): FixedSizeCodec<
 export type CancelInput<
   TAccountAuthority extends InstructionSignerInput = InstructionSignerInput,
   TAccountDeal extends InstructionAccountInput = InstructionAccountInput,
-  TAccountSeller extends InstructionAccountInput = InstructionAccountInput,
 > = {
   authority: TAccountAuthority;
   deal: TAccountDeal;
-  seller: TAccountSeller;
 };
 
 export function getCancelInstruction<
   TAccountAuthority extends InstructionSignerInput,
   TAccountDeal extends InstructionAccountInput,
-  TAccountSeller extends InstructionAccountInput,
   TProgramAddress extends Address = typeof SELO_PROGRAM_ADDRESS,
 >(
-  input: CancelInput<TAccountAuthority, TAccountDeal, TAccountSeller>,
+  input: CancelInput<TAccountAuthority, TAccountDeal>,
   config?: { programAddress?: TProgramAddress },
 ): CancelInstruction<
   TProgramAddress,
@@ -126,10 +119,6 @@ export function getCancelInstruction<
   ResolvedInstructionAccountMeta<
     TAccountDeal,
     InstructionAccountInputAddress<TAccountDeal>
-  >,
-  ResolvedInstructionAccountMeta<
-    TAccountSeller,
-    InstructionAccountInputAddress<TAccountSeller>
   >
 > {
   // Program address.
@@ -146,7 +135,6 @@ export function getCancelInstruction<
       isWritable: false,
     },
     deal: { value: input.deal ?? null, isSigner: false, isWritable: true },
-    seller: { value: input.seller ?? null, isSigner: false, isWritable: true },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -157,7 +145,6 @@ export function getCancelInstruction<
     accounts: [
       getAccountMeta("authority", accounts.authority),
       getAccountMeta("deal", accounts.deal),
-      getAccountMeta("seller", accounts.seller),
     ],
     data: getCancelInstructionDataEncoder().encode({}),
     programAddress,
@@ -170,10 +157,6 @@ export function getCancelInstruction<
     ResolvedInstructionAccountMeta<
       TAccountDeal,
       InstructionAccountInputAddress<TAccountDeal>
-    >,
-    ResolvedInstructionAccountMeta<
-      TAccountSeller,
-      InstructionAccountInputAddress<TAccountSeller>
     >
   >);
 }
@@ -186,7 +169,6 @@ export type ParsedCancelInstruction<
   accounts: {
     authority: TAccountMetas[0];
     deal: TAccountMetas[1];
-    seller: TAccountMetas[2];
   };
   data: CancelInstructionData;
 };
@@ -199,12 +181,12 @@ export function parseCancelInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>,
 ): ParsedCancelInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 3) {
+  if (instruction.accounts.length < 2) {
     throw new SolanaError(
       SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
       {
         actualAccountMetas: instruction.accounts.length,
-        expectedAccountMetas: 3,
+        expectedAccountMetas: 2,
       },
     );
   }
@@ -216,11 +198,7 @@ export function parseCancelInstruction<
   };
   return {
     programAddress: instruction.programAddress,
-    accounts: {
-      authority: getNextAccount(),
-      deal: getNextAccount(),
-      seller: getNextAccount(),
-    },
+    accounts: { authority: getNextAccount(), deal: getNextAccount() },
     data: getCancelInstructionDataDecoder().decode(instruction.data),
   };
 }

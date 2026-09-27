@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   DealStatus,
   SELO_ERROR__DEAL_EXPIRED,
+  SELO_ERROR__INVALID_STATUS,
   findVaultPda,
   getFundEscrowInstructionAsync,
   parseEscrowFundedEvent,
@@ -102,12 +103,12 @@ describe("fund_escrow", () => {
     );
   });
 
-  it("rejects funding a cancelled (closed) deal", async () => {
+  it("rejects funding a cancelled deal", async () => {
     const { deal } = await createDeal(ctx, { expiresAt: NOW + DAY });
-    await sendOk(ctx.svm, [cancelIx(ctx, deal, ctx.seller)], ctx.seller);
+    await sendOk(ctx.svm, [cancelIx(deal, ctx.seller)], ctx.seller);
     expectError(
       await send(ctx.svm, [await fundIx(ctx, deal)], ctx.buyer),
-      AnchorErr.AccountNotInitialized,
+      SELO_ERROR__INVALID_STATUS,
     );
   });
 

@@ -101,7 +101,7 @@ Document types: `BILL_OF_LADING = 0`, `COMMERCIAL_INVOICE = 1`, `CPR = 2` (Cédu
 | `financier` | `Pubkey` | set by `advance` (default = none) |
 | `advanced_amount` | `u64` | principal paid to seller |
 | `repay_amount` | `u64` | principal + fee, paid first on `settle` |
-| `status` | `DealStatus` | `Created → Funded → Advanced → Settled`; `Funded → Refunded`; `Created → Cancelled` |
+| `status` | `DealStatus` | `Created → Funded → Advanced → Settled`; `Funded → Refunded`; `Created → Cancelled` (terminal, account kept) |
 | `created_at` | `i64` | |
 | `expires_at` | `i64` | latest shipment date (deadline for `SHIPPED`) |
 | `payment_due_at` | `i64` | maturity; `settle` allowed from here on |
@@ -168,7 +168,7 @@ accounts, `checked_*` math, explicit status transitions.
 | 5 | `advance(amount)` + B/L `DocumentRecord` | financier | status `Funded`; record is this deal's B/L; `SHIPPED` attested; `0 < amount <= deal.amount * max_advance_bps / 10_000`; financier ≠ seller/buyer; `now < payment_due_at` | transfer financier token acct → seller token acct; record financier, principal, repay; status `Advanced` |
 | 6 | `settle()` | anyone (crank) | status `Funded`/`Advanced`; `required ⊆ attested`; `now >= payment_due_at` | vault → financier `repay_amount` (if advanced), rest → seller; close vault; status `Settled` |
 | 7 | `refund()` | anyone (crank) | status `Funded`; `now > expires_at`; **`SHIPPED` not attested** | vault → buyer; close vault; status `Refunded` |
-| 8 | `cancel()` | seller or buyer | status `Created` (nothing funded, no documents) | close `Deal` to seller; `DealCancelled` |
+| 8 | `cancel()` | seller or buyer | status `Created` (nothing funded, no documents) | status `Cancelled` (account kept: the address can never be re-created with other terms — audit F-1); `DealCancelled` |
 
 `Advanced` implies `SHIPPED` (advance requires it), so `refund` never applies to `Advanced` deals.
 

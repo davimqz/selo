@@ -522,12 +522,8 @@ export async function refundIx(
   });
 }
 
-export function cancelIx(ctx: Ctx, deal: Address, authority: KeyPairSigner) {
-  return getCancelInstruction({
-    authority,
-    deal,
-    seller: ctx.seller.address,
-  });
+export function cancelIx(deal: Address, authority: KeyPairSigner) {
+  return getCancelInstruction({ authority, deal });
 }
 
 /** Funded deal with B/L registered and every default milestone attested. */
