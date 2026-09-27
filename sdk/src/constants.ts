@@ -1,9 +1,3 @@
-import { address } from "@solana/kit";
-
-export const SELO_PROGRAM_ADDRESS = address(
-  "4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio",
-);
-
 /** Milestone bit flags (mirror `programs/selo/src/constants.rs`). */
 export const Milestone = {
   INSPECTED: 1 << 0,

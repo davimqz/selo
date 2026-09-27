@@ -2,7 +2,9 @@ use anchor_lang::prelude::*;
 
 use crate::constants::*;
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Default, PartialEq, Eq, InitSpace, Debug)]
+#[derive(
+    AnchorSerialize, AnchorDeserialize, Clone, Copy, Default, PartialEq, Eq, InitSpace, Debug,
+)]
 pub struct AttesterEntry {
     pub key: Pubkey,
     /// Milestone bits this attester may sign.

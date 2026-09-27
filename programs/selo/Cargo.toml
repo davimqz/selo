@@ -22,7 +22,7 @@ custom-panic = []
 
 [dependencies]
 anchor-lang = "=1.2.0"
-anchor-spl = { version = "=1.2.0", default-features = false, features = ["token"] }
+anchor-spl = { version = "=1.2.0", default-features = false, features = ["token", "token_2022"] }
 
 
 [lints.rust]

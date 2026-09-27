@@ -14,8 +14,6 @@ pub enum SeloError {
     ShippedNotRequired,
     #[msg("Milestone is not required by this deal")]
     MilestoneNotRequired,
-    #[msg("Milestone has already been attested")]
-    MilestoneAlreadyAttested,
     #[msg("Attesters must be 1 to 4 distinct keys, each with a non-empty known milestone mask")]
     InvalidAttesters,
     #[msg("Seller and buyer must be different accounts")]

@@ -12,7 +12,6 @@ pub struct AttestMilestone<'info> {
         seeds = [DEAL_SEED, deal.seller.as_ref(), &deal.deal_id.to_le_bytes()],
         bump = deal.bump,
         constraint = is_single_known_milestone(milestone) @ SeloError::InvalidMilestone,
-        constraint = deal.attested_milestones & milestone == 0 @ SeloError::MilestoneAlreadyAttested,
     )]
     pub deal: Account<'info, Deal>,
     #[account(
@@ -44,7 +43,8 @@ pub fn handle_attest_milestone(
         SeloError::MilestoneNotRequired
     );
     require!(
-        deal.attester_mode == ATTESTER_MODE_ALLOWLIST && deal.allowlist_authorizes(&attester, milestone),
+        deal.attester_mode == ATTESTER_MODE_ALLOWLIST
+            && deal.allowlist_authorizes(&attester, milestone),
         SeloError::UnauthorizedAttester
     );
     // SHIPPED must happen by the latest shipment date. After that date, other
