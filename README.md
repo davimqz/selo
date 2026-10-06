@@ -1,10 +1,27 @@
 # Selo
 
-Programmable letter of credit on Solana: a USDC escrow released by shipment attestations, with an
-on-chain registry that makes pledging the same trade document (B/L, invoice, CPR) twice impossible,
-and financier advances repaid first at settlement.
+A public, neutral invoice registry on Solana that blocks financing the same invoice twice.
 
-> Work in progress for the Colosseum Crypto World's Fair. See [`docs/plan.md`](docs/plan.md).
+- **Problem:** receivables are financed by lenders who cannot see each other, so one invoice can be
+  pledged to several lenders, or a fake one financed many times.
+- **Solution:** each invoice becomes an account derived from the hash of its canonical fields.
+  Sealing it again fails, and once a lender locks it, any other lender trying to lock it is rejected
+  and sees who financed it first.
+- **Not a lender:** no pool, no loans, no token. Factors and credit protocols are Selo's customers.
+
+> Work in progress for the Colosseum Crypto World's Fair (Solana track). Devnet only, test tokens
+> only. Plan: [`TASKS.md`](TASKS.md).
+
+## Layout
+
+```
+programs/selo/   Anchor program
+packages/sdk/    canonical invoice hash, checkInvoice(), generated client (Codama)
+app/             Next.js frontend
+scripts/         test mint, initialize, demo seed
+tests/           program tests (vitest + LiteSVM)
+docs/            pitch, demo script
+```
 
 ## Development setup
 
@@ -25,12 +42,10 @@ chmod +x ~/.local/bin/anchor
 corepack enable && pnpm install
 
 # 4. Build + test
-pnpm test:program      # anchor build → Codama client (sdk/src/generated) → vitest on LiteSVM
+pnpm test:program      # anchor build → Codama client (packages/sdk/src/generated) → vitest on LiteSVM
 pnpm lint              # prettier + rustfmt + clippy + eslint
-
-# 5. Local network (Surfpool) with a mock USDC mint
-curl -sL https://run.surfpool.run/ | bash   # once
-solana-keygen new --no-bip39-passphrase   # once, if you have no ~/.config/solana/id.json
-pnpm localnet          # terminal 1
-pnpm usdc:mock         # terminal 2 → writes scripts/.localnet.json
 ```
+
+## License
+
+MIT
