@@ -20,18 +20,54 @@ export const SELO_ERROR__INVALID_AMOUNT = 0x1770; // 6000
 export const SELO_ERROR__INVALID_STATUS = 0x1771; // 6001
 /** MathOverflow: Arithmetic overflow */
 export const SELO_ERROR__MATH_OVERFLOW = 0x1772; // 6002
+/** NotUpgradeAuthority: Signer is not the program's upgrade authority */
+export const SELO_ERROR__NOT_UPGRADE_AUTHORITY = 0x1773; // 6003
+/** LockFeeTooHigh: Lock fee exceeds the maximum */
+export const SELO_ERROR__LOCK_FEE_TOO_HIGH = 0x1774; // 6004
+/** InvalidFeeMint: Fee mint must have 6 decimals */
+export const SELO_ERROR__INVALID_FEE_MINT = 0x1775; // 6005
+/** InvalidLenderName: Lender name must be 1 to 32 bytes and not blank */
+export const SELO_ERROR__INVALID_LENDER_NAME = 0x1776; // 6006
+/** Paused: Registry is paused */
+export const SELO_ERROR__PAUSED = 0x1777; // 6007
+/** InvoiceAlreadySealed: This invoice is already sealed: it cannot be registered twice */
+export const SELO_ERROR__INVOICE_ALREADY_SEALED = 0x1778; // 6008
+/** DueDateInPast: Due date must be in the future */
+export const SELO_ERROR__DUE_DATE_IN_PAST = 0x1779; // 6009
+/** InvalidCurrency: Currency must be a 3-letter ISO 4217 code */
+export const SELO_ERROR__INVALID_CURRENCY = 0x177a; // 6010
+/** InvalidBuyer: Buyer must be a different, non-default account */
+export const SELO_ERROR__INVALID_BUYER = 0x177b; // 6011
 
 export type SeloError =
+  | typeof SELO_ERROR__DUE_DATE_IN_PAST
   | typeof SELO_ERROR__INVALID_AMOUNT
+  | typeof SELO_ERROR__INVALID_BUYER
+  | typeof SELO_ERROR__INVALID_CURRENCY
+  | typeof SELO_ERROR__INVALID_FEE_MINT
+  | typeof SELO_ERROR__INVALID_LENDER_NAME
   | typeof SELO_ERROR__INVALID_STATUS
-  | typeof SELO_ERROR__MATH_OVERFLOW;
+  | typeof SELO_ERROR__INVOICE_ALREADY_SEALED
+  | typeof SELO_ERROR__LOCK_FEE_TOO_HIGH
+  | typeof SELO_ERROR__MATH_OVERFLOW
+  | typeof SELO_ERROR__NOT_UPGRADE_AUTHORITY
+  | typeof SELO_ERROR__PAUSED;
 
 let seloErrorMessages: Record<SeloError, string> | undefined;
 if (process.env["NODE_ENV"] !== "production") {
   seloErrorMessages = {
+    [SELO_ERROR__DUE_DATE_IN_PAST]: `Due date must be in the future`,
     [SELO_ERROR__INVALID_AMOUNT]: `Amount must be greater than zero`,
+    [SELO_ERROR__INVALID_BUYER]: `Buyer must be a different, non-default account`,
+    [SELO_ERROR__INVALID_CURRENCY]: `Currency must be a 3-letter ISO 4217 code`,
+    [SELO_ERROR__INVALID_FEE_MINT]: `Fee mint must have 6 decimals`,
+    [SELO_ERROR__INVALID_LENDER_NAME]: `Lender name must be 1 to 32 bytes and not blank`,
     [SELO_ERROR__INVALID_STATUS]: `Invoice is not in a valid status for this action`,
+    [SELO_ERROR__INVOICE_ALREADY_SEALED]: `This invoice is already sealed: it cannot be registered twice`,
+    [SELO_ERROR__LOCK_FEE_TOO_HIGH]: `Lock fee exceeds the maximum`,
     [SELO_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
+    [SELO_ERROR__NOT_UPGRADE_AUTHORITY]: `Signer is not the program's upgrade authority`,
+    [SELO_ERROR__PAUSED]: `Registry is paused`,
   };
 }
 

@@ -6,7 +6,429 @@
  * @see https://github.com/codama-idl/codama
  */
 
-import type { Address } from "@solana/kit";
+import {
+  assertIsInstructionWithAccounts,
+  containsBytes,
+  extendClient,
+  fixEncoderSize,
+  getBytesEncoder,
+  SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_ACCOUNT,
+  SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION,
+  SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE,
+  SolanaError,
+  type Address,
+  type ClientWithRpc,
+  type ClientWithTransactionPlanning,
+  type ClientWithTransactionSending,
+  type ExtendedClient,
+  type GetAccountInfoApi,
+  type GetMultipleAccountsApi,
+  type Instruction,
+  type InstructionWithData,
+  type ReadonlyUint8Array,
+} from "@solana/kit";
+import {
+  addSelfFetchFunctions,
+  addSelfPlanAndSendFunctions,
+  type SelfFetchFunctions,
+  type SelfPlanAndSendFunctions,
+} from "@solana/program-client-core";
+import {
+  getConfigCodec,
+  getLenderCodec,
+  getSealCodec,
+  type Config,
+  type ConfigArgs,
+  type Lender,
+  type LenderArgs,
+  type Seal,
+  type SealArgs,
+} from "../accounts";
+import {
+  getCancelSealInstruction,
+  getInitializeInstructionAsync,
+  getRegisterLenderInstructionAsync,
+  getSealInvoiceInstructionAsync,
+  getSetLenderActiveInstructionAsync,
+  getSetPausedInstructionAsync,
+  parseCancelSealInstruction,
+  parseInitializeInstruction,
+  parseRegisterLenderInstruction,
+  parseSealInvoiceInstruction,
+  parseSetLenderActiveInstruction,
+  parseSetPausedInstruction,
+  type CancelSealInput,
+  type InitializeAsyncInput,
+  type ParsedCancelSealInstruction,
+  type ParsedInitializeInstruction,
+  type ParsedRegisterLenderInstruction,
+  type ParsedSealInvoiceInstruction,
+  type ParsedSetLenderActiveInstruction,
+  type ParsedSetPausedInstruction,
+  type RegisterLenderAsyncInput,
+  type SealInvoiceAsyncInput,
+  type SetLenderActiveAsyncInput,
+  type SetPausedAsyncInput,
+} from "../instructions";
+import { findConfigPda, findLenderPda, findSealPda } from "../pdas";
 
 export const SELO_PROGRAM_ADDRESS =
   "4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio" as Address<"4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio">;
+
+export enum SeloAccount {
+  Config,
+  Lender,
+  Seal,
+}
+
+export function identifySeloAccount(
+  account: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
+): SeloAccount {
+  const data = "data" in account ? account.data : account;
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([155, 12, 170, 224, 30, 250, 204, 130]),
+      ),
+      0,
+    )
+  ) {
+    return SeloAccount.Config;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([107, 30, 175, 31, 232, 82, 180, 124]),
+      ),
+      0,
+    )
+  ) {
+    return SeloAccount.Lender;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([162, 149, 250, 10, 100, 125, 36, 168]),
+      ),
+      0,
+    )
+  ) {
+    return SeloAccount.Seal;
+  }
+  throw new SolanaError(
+    SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_ACCOUNT,
+    { accountData: data, programName: "selo" },
+  );
+}
+
+export enum SeloEvent {
+  InvoiceCancelled,
+  InvoiceSealed,
+}
+
+export function identifySeloEvent(
+  event: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
+): SeloEvent {
+  const data = "data" in event ? event.data : event;
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([62, 68, 182, 115, 197, 226, 135, 244]),
+      ),
+      0,
+    )
+  ) {
+    return SeloEvent.InvoiceCancelled;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([157, 108, 156, 163, 152, 181, 138, 26]),
+      ),
+      0,
+    )
+  ) {
+    return SeloEvent.InvoiceSealed;
+  }
+  throw new Error(
+    "The provided event could not be identified as a selo event.",
+  );
+}
+
+export enum SeloInstruction {
+  CancelSeal,
+  Initialize,
+  RegisterLender,
+  SealInvoice,
+  SetLenderActive,
+  SetPaused,
+}
+
+export function identifySeloInstruction(
+  instruction: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
+): SeloInstruction {
+  const data = "data" in instruction ? instruction.data : instruction;
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([41, 151, 147, 20, 84, 80, 204, 239]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.CancelSeal;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([175, 175, 109, 31, 13, 152, 155, 237]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.Initialize;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([106, 218, 85, 233, 227, 161, 105, 68]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.RegisterLender;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([184, 195, 32, 76, 51, 45, 228, 105]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.SealInvoice;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([174, 83, 84, 245, 17, 217, 168, 102]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.SetLenderActive;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([91, 60, 125, 192, 176, 225, 166, 218]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.SetPaused;
+  }
+  throw new SolanaError(
+    SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION,
+    { instructionData: data, programName: "selo" },
+  );
+}
+
+export type ParsedSeloInstruction<
+  TProgram extends string = "4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio",
+> =
+  | ({
+      instructionType: SeloInstruction.CancelSeal;
+    } & ParsedCancelSealInstruction<TProgram>)
+  | ({
+      instructionType: SeloInstruction.Initialize;
+    } & ParsedInitializeInstruction<TProgram>)
+  | ({
+      instructionType: SeloInstruction.RegisterLender;
+    } & ParsedRegisterLenderInstruction<TProgram>)
+  | ({
+      instructionType: SeloInstruction.SealInvoice;
+    } & ParsedSealInvoiceInstruction<TProgram>)
+  | ({
+      instructionType: SeloInstruction.SetLenderActive;
+    } & ParsedSetLenderActiveInstruction<TProgram>)
+  | ({
+      instructionType: SeloInstruction.SetPaused;
+    } & ParsedSetPausedInstruction<TProgram>);
+
+export function parseSeloInstruction<TProgram extends string>(
+  instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>,
+): ParsedSeloInstruction<TProgram> {
+  const instructionType = identifySeloInstruction(instruction);
+  switch (instructionType) {
+    case SeloInstruction.CancelSeal: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.CancelSeal,
+        ...parseCancelSealInstruction(instruction),
+      };
+    }
+    case SeloInstruction.Initialize: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.Initialize,
+        ...parseInitializeInstruction(instruction),
+      };
+    }
+    case SeloInstruction.RegisterLender: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.RegisterLender,
+        ...parseRegisterLenderInstruction(instruction),
+      };
+    }
+    case SeloInstruction.SealInvoice: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.SealInvoice,
+        ...parseSealInvoiceInstruction(instruction),
+      };
+    }
+    case SeloInstruction.SetLenderActive: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.SetLenderActive,
+        ...parseSetLenderActiveInstruction(instruction),
+      };
+    }
+    case SeloInstruction.SetPaused: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.SetPaused,
+        ...parseSetPausedInstruction(instruction),
+      };
+    }
+    default:
+      throw new SolanaError(
+        SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE,
+        { instructionType: instructionType as string, programName: "selo" },
+      );
+  }
+}
+
+export type SeloPlugin = {
+  accounts: SeloPluginAccounts;
+  instructions: SeloPluginInstructions;
+  pdas: SeloPluginPdas;
+  identifyAccount: typeof identifySeloAccount;
+  identifyInstruction: typeof identifySeloInstruction;
+  parseInstruction: typeof parseSeloInstruction;
+};
+
+export type SeloPluginAccounts = {
+  config: ReturnType<typeof getConfigCodec> &
+    SelfFetchFunctions<ConfigArgs, Config>;
+  lender: ReturnType<typeof getLenderCodec> &
+    SelfFetchFunctions<LenderArgs, Lender>;
+  seal: ReturnType<typeof getSealCodec> & SelfFetchFunctions<SealArgs, Seal>;
+};
+
+export type SeloPluginInstructions = {
+  cancelSeal: (
+    input: CancelSealInput,
+  ) => ReturnType<typeof getCancelSealInstruction> & SelfPlanAndSendFunctions;
+  initialize: (
+    input: InitializeAsyncInput,
+  ) => ReturnType<typeof getInitializeInstructionAsync> &
+    SelfPlanAndSendFunctions;
+  registerLender: (
+    input: RegisterLenderAsyncInput,
+  ) => ReturnType<typeof getRegisterLenderInstructionAsync> &
+    SelfPlanAndSendFunctions;
+  sealInvoice: (
+    input: SealInvoiceAsyncInput,
+  ) => ReturnType<typeof getSealInvoiceInstructionAsync> &
+    SelfPlanAndSendFunctions;
+  setLenderActive: (
+    input: SetLenderActiveAsyncInput,
+  ) => ReturnType<typeof getSetLenderActiveInstructionAsync> &
+    SelfPlanAndSendFunctions;
+  setPaused: (
+    input: SetPausedAsyncInput,
+  ) => ReturnType<typeof getSetPausedInstructionAsync> &
+    SelfPlanAndSendFunctions;
+};
+
+export type SeloPluginPdas = {
+  config: typeof findConfigPda;
+  lender: typeof findLenderPda;
+  seal: typeof findSealPda;
+};
+
+export type SeloPluginRequirements = ClientWithRpc<
+  GetAccountInfoApi & GetMultipleAccountsApi
+> &
+  ClientWithTransactionPlanning &
+  ClientWithTransactionSending;
+
+export function seloProgram() {
+  return <T extends SeloPluginRequirements>(
+    client: T,
+  ): ExtendedClient<T, { selo: SeloPlugin }> => {
+    return extendClient(client, {
+      selo: <SeloPlugin>{
+        accounts: {
+          config: addSelfFetchFunctions(client, getConfigCodec()),
+          lender: addSelfFetchFunctions(client, getLenderCodec()),
+          seal: addSelfFetchFunctions(client, getSealCodec()),
+        },
+        instructions: {
+          cancelSeal: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getCancelSealInstruction(input),
+            ),
+          initialize: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getInitializeInstructionAsync(input),
+            ),
+          registerLender: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getRegisterLenderInstructionAsync(input),
+            ),
+          sealInvoice: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getSealInvoiceInstructionAsync(input),
+            ),
+          setLenderActive: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getSetLenderActiveInstructionAsync(input),
+            ),
+          setPaused: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getSetPausedInstructionAsync(input),
+            ),
+        },
+        pdas: {
+          config: findConfigPda,
+          lender: findLenderPda,
+          seal: findSealPda,
+        },
+        identifyAccount: identifySeloAccount,
+        identifyInstruction: identifySeloInstruction,
+        parseInstruction: parseSeloInstruction,
+      },
+    });
+  };
+}
