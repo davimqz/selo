@@ -44,10 +44,10 @@ Organizado por dia: o prazo é a restrição dominante. Marque cada item (`[x]`)
 ## Dia 3 — Sexta 09/10 · Devnet + frontend
 
 - [ ] `anchor deploy` na devnet; Program ID no README e no `Anchor.toml`.
-- [ ] `scripts/seed-demo.ts` idempotente: initialize, registra "Lender A" e "Lender B", dá `USDC-dev` aos dois.
-- [ ] Next.js + Wallet Adapter + `packages/sdk`.
-- [ ] Telas `/fornecedor`, `/comprador`, `/financiador`, `/verificar`.
-- [ ] Mensagens de erro legíveis; faixa "Devnet — tokens de teste".
+- [x] `scripts/seed-demo.ts` idempotente: initialize, registra "Lender A" e "Lender B", dá `USDC-dev` aos dois.
+- [x] Next.js + Wallet Standard (`@solana/react`) + `packages/sdk`.
+- [x] Telas `/fornecedor`, `/comprador`, `/financiador`, `/verificar`.
+- [x] Mensagens de erro legíveis; faixa "Devnet — tokens de teste".
 
 **Critério de pronto**: os cinco momentos rodam no navegador contra a devnet, três vezes seguidas sem erro.
 
