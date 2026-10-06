@@ -23,6 +23,15 @@ import {
   signTransactionMessageWithSigners,
 } from "@solana/kit";
 
+// Repo-root .env (gitignored), if present; real env vars win.
+try {
+  process.loadEnvFile(
+    join(dirname(fileURLToPath(import.meta.url)), "..", "..", ".env"),
+  );
+} catch {
+  // no .env: localnet defaults
+}
+
 export const rpcUrl = process.env.RPC_URL || "http://127.0.0.1:8899";
 const wsUrl = rpcUrl.replace(/^http/, "ws").replace(/:8899\b/, ":8900");
 

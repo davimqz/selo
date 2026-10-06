@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "create-mint": "tsx src/create-mint.ts",
+    "seed-demo": "tsx src/seed-demo.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

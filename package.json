@@ -19,7 +19,8 @@
     "lint:rs": "cargo fmt --all -- --check && cargo clippy --all-targets -- -D warnings",
     "format": "prettier --write \"tests/**/*.ts\" \"scripts/**/*.{ts,mjs}\" \"packages/sdk/{src,test}/*.ts\" && cargo fmt --all",
     "localnet": "NO_DNA=1 surfpool start --no-tui",
-    "create-mint": "pnpm --filter scripts create-mint"
+    "create-mint": "pnpm --filter scripts create-mint",
+    "seed-demo": "pnpm --filter scripts seed-demo"
   },
   "devDependencies": {
     "@codama/nodes-from-anchor": "1.5.6",
