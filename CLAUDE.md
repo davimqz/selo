@@ -37,7 +37,7 @@ Os momentos 4 e 5 vendem o projeto e não podem falhar no vídeo.
 | Testes | Testes TypeScript do Anchor no validador local (ou LiteSVM se o setup for rápido) | Iteração em segundos. |
 | SDK | `packages/sdk` em TypeScript: hash canônico, cliente do programa, função `checkInvoice()` | É o que um financiador integra. Faz parte do produto, não é detalhe. |
 | Frontend | Next.js (App Router, TypeScript) no Vercel Hobby | Gratuito, deploy em minutos. |
-| Carteira | Solana Wallet Adapter (Phantom) | Caminho mais curto. |
+| Carteira | Wallet Standard + `@solana/react` (Phantom) | Signers do `@solana/kit` direto nos builders do SDK; o Wallet Adapter clássico exigiria web3.js v1 (decidido em 06/10). |
 | RPC | Helius devnet (free tier) | A RPC pública da devnet sofre limite de taxa na hora errada. |
 | Token de taxa | Mint de teste `USDC-dev` (6 decimais) criado por script | Para cobrar a taxa de travamento na demo. Rotulado como teste em toda a UI. |
 
