@@ -19,10 +19,10 @@ Organizado por dia: o prazo é a restrição dominante. Marque cada item (`[x]`)
 
 ## Dia 1 — Quarta 07/10 · Hash canônico + selo
 
-- [ ] `packages/sdk/src/hash.ts`: `canonicalize` e `invoiceHash` exatamente como no `CLAUDE.md` Seção 5.
-- [ ] Vetores de teste do hash (formatações diferentes → mesmo hash; um campo diferente → hash diferente).
-- [ ] Contas `Config`, `Lender`, `Seal`; instruções `initialize`, `register_lender`, `set_lender_active`, `seal_invoice`, `cancel_seal`, `set_paused`.
-- [ ] Teste 1 do `CLAUDE.md` Seção 11 (selar duas vezes falha).
+- [x] `packages/sdk/src/hash.ts`: `canonicalize` e `invoiceHash` exatamente como no `CLAUDE.md` Seção 5.
+- [x] Vetores de teste do hash (formatações diferentes → mesmo hash; um campo diferente → hash diferente).
+- [x] Contas `Config`, `Lender`, `Seal`; instruções `initialize`, `register_lender`, `set_lender_active`, `seal_invoice`, `cancel_seal`, `set_paused`.
+- [x] Teste 1 do `CLAUDE.md` Seção 11 (selar duas vezes falha).
 
 **Critério de pronto**: o teste de selo duplicado passa no validador local.
 
