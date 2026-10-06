@@ -7,6 +7,7 @@ import {
   assertAccountExists,
   createTransactionMessage,
   generateKeyPairSigner,
+  getAddressEncoder,
   getBase64Encoder,
   lamports,
   pipe,
@@ -29,7 +30,22 @@ import {
   LiteSVM,
   type TransactionMetadata,
 } from "litesvm";
-import { SELO_PROGRAM_ADDRESS, USDC_DECIMALS } from "@selo/sdk";
+import {
+  type Invoice,
+  SELO_PROGRAM_ADDRESS,
+  USDC_DECIMALS,
+  decodeConfig,
+  decodeLender,
+  decodeSeal,
+  findConfigPda,
+  findLenderPda,
+  findProgramDataAddress,
+  findSealPda,
+  getInitializeInstructionAsync,
+  getRegisterLenderInstructionAsync,
+  getSealInvoiceInstructionAsync,
+  sealArgs,
+} from "@selo/sdk";
 
 export const USDC = 10n ** BigInt(USDC_DECIMALS);
 export const NOW = 1_800_000_000n;
@@ -165,7 +181,11 @@ async function funded(svm: LiteSVM): Promise<KeyPairSigner> {
   return kp;
 }
 
-async function createMint(svm: LiteSVM, authority: KeyPairSigner) {
+export async function createMint(
+  svm: LiteSVM,
+  authority: KeyPairSigner,
+  decimals: number = USDC_DECIMALS,
+) {
   const mint = await generateKeyPairSigner();
   const space = BigInt(getMintSize());
   await sendOk(
@@ -180,7 +200,7 @@ async function createMint(svm: LiteSVM, authority: KeyPairSigner) {
       }),
       getInitializeMint2Instruction({
         mint: mint.address,
-        decimals: USDC_DECIMALS,
+        decimals,
         mintAuthority: authority.address,
       }),
     ],
@@ -225,6 +245,7 @@ export async function setup(): Promise<Ctx> {
     await Promise.all(Array.from({ length: 7 }, () => funded(svm)));
   const feeMint = await createMint(svm, faucet);
   const otherMint = await createMint(svm, faucet);
+  await setUpgradeAuthority(svm, admin.address);
 
   return {
     svm,
@@ -246,4 +267,124 @@ export async function setup(): Promise<Ctx> {
         })
       )[0],
   };
+}
+
+/**
+ * LiteSVM deploys the program with no upgrade authority; write one into the
+ * ProgramData metadata (tag u32 | slot u64 | Option<Pubkey>, 45 bytes).
+ */
+export async function setUpgradeAuthority(svm: LiteSVM, authority: Address) {
+  const programData = await findProgramDataAddress();
+  const acc = svm.getAccount(programData);
+  assertAccountExists(acc);
+  const data = new Uint8Array(acc.data);
+  data[12] = 1;
+  data.set(getAddressEncoder().encode(authority), 13);
+  svm.setAccount({ ...acc, data });
+}
+
+// ---------------------------------------------------------------- registry
+
+export const LOCK_FEE = 2n * USDC;
+
+export const INVOICE: Invoice = {
+  buyerTaxId: "BUYER-001",
+  supplierTaxId: "SUP-042",
+  number: "INV-2026-0001",
+  amount: 1_250_000n,
+  currency: "USD",
+  // NOW is 2027-01-15; due 90 days later.
+  dueDate: "2027-04-15",
+};
+
+/** Initializes the registry with `admin` and a treasury ATA for the fee mint. */
+export async function initRegistry(ctx: Ctx, lockFee: bigint = LOCK_FEE) {
+  const treasury = await mintTo(ctx, ctx.admin.address, 0n);
+  await sendOk(
+    ctx.svm,
+    [
+      await getInitializeInstructionAsync({
+        admin: ctx.admin,
+        feeMint: ctx.feeMint,
+        treasury,
+        program: SELO_PROGRAM_ADDRESS,
+        programData: await findProgramDataAddress(),
+        lockFee,
+      }),
+    ],
+    ctx.admin,
+  );
+  return { treasury };
+}
+
+export async function registerLender(
+  ctx: Ctx,
+  authority: Address,
+  name: string,
+) {
+  await sendOk(
+    ctx.svm,
+    [
+      await getRegisterLenderInstructionAsync({
+        admin: ctx.admin,
+        lenderAuthority: authority,
+        name,
+      }),
+    ],
+    ctx.admin,
+  );
+  return (await findLenderPda({ lenderAuthority: authority }))[0];
+}
+
+/** A registry with lender A and lender B registered. */
+export async function setupRegistry() {
+  const ctx = await setup();
+  const { treasury } = await initRegistry(ctx);
+  const lenderA = await registerLender(ctx, ctx.lenderA.address, "Lender A");
+  const lenderB = await registerLender(ctx, ctx.lenderB.address, "Lender B");
+  return { ctx, treasury, lenderA, lenderB };
+}
+
+export async function sealIx(
+  ctx: Ctx,
+  invoice: Invoice = INVOICE,
+  overrides: Partial<{
+    supplier: KeyPairSigner;
+    buyer: Address;
+    faceAmount: bigint;
+    currency: Uint8Array;
+    dueTs: bigint;
+  }> = {},
+) {
+  const args = sealArgs(invoice);
+  return getSealInvoiceInstructionAsync({
+    supplier: overrides.supplier ?? ctx.supplier,
+    invoiceHash: args.invoiceHash,
+    buyer: overrides.buyer ?? ctx.buyer.address,
+    faceAmount: overrides.faceAmount ?? args.faceAmount,
+    currency: overrides.currency ?? args.currency,
+    dueTs: overrides.dueTs ?? args.dueTs,
+  });
+}
+
+export async function sealPdaOf(invoice: Invoice = INVOICE) {
+  return (await findSealPda({ invoiceHash: sealArgs(invoice).invoiceHash }))[0];
+}
+
+export async function fetchConfig(svm: LiteSVM) {
+  const acc = decodeConfig(svm.getAccount((await findConfigPda())[0]));
+  assertAccountExists(acc);
+  return acc.data;
+}
+
+export function fetchLender(svm: LiteSVM, lender: Address) {
+  const acc = decodeLender(svm.getAccount(lender));
+  assertAccountExists(acc);
+  return acc.data;
+}
+
+export function fetchSeal(svm: LiteSVM, seal: Address) {
+  const acc = decodeSeal(svm.getAccount(seal));
+  assertAccountExists(acc);
+  return acc.data;
 }
