@@ -70,7 +70,7 @@ jobs:
         run: NO_DNA=1 anchor build --ignore-keys
 
       - name: Generated client is up to date
-        run: pnpm run codegen && git diff --exit-code -- sdk/src/generated
+        run: pnpm run codegen && git diff --exit-code -- packages/sdk/src/generated
 
       - name: Typecheck
         run: pnpm run typecheck

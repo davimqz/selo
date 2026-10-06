@@ -1,7 +1,7 @@
 {
   "name": "selo",
   "private": true,
-  "description": "Selo: programmable letter of credit on Solana",
+  "description": "Selo: public registry that blocks financing the same invoice twice",
   "license": "MIT",
   "packageManager": "pnpm@12.6.0",
   "engines": {
@@ -13,11 +13,11 @@
     "codegen": "node scripts/codegen.mjs",
     "test:ts": "vitest run",
     "test:program": "NO_DNA=1 anchor build && pnpm run codegen && pnpm run test:ts",
-    "typecheck": "tsc --noEmit && pnpm -r --filter sdk --filter scripts typecheck",
+    "typecheck": "tsc --noEmit && pnpm -r --filter @selo/sdk --filter scripts typecheck",
     "lint": "pnpm run lint:ts && pnpm run lint:rs && pnpm --filter app lint",
-    "lint:ts": "prettier --check \"tests/**/*.ts\" \"scripts/**/*.{ts,mjs}\" \"sdk/src/*.ts\"",
+    "lint:ts": "prettier --check \"tests/**/*.ts\" \"scripts/**/*.{ts,mjs}\" \"packages/sdk/src/*.ts\"",
     "lint:rs": "cargo fmt --all -- --check && cargo clippy --all-targets -- -D warnings",
-    "format": "prettier --write \"tests/**/*.ts\" \"scripts/**/*.{ts,mjs}\" \"sdk/src/*.ts\" && cargo fmt --all",
+    "format": "prettier --write \"tests/**/*.ts\" \"scripts/**/*.{ts,mjs}\" \"packages/sdk/src/*.ts\" && cargo fmt --all",
     "localnet": "NO_DNA=1 surfpool start --no-tui",
     "usdc:mock": "pnpm --filter scripts usdc:mock"
   },

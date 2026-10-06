@@ -174,7 +174,7 @@ importers:
         version: 2.5.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)
       '@selo/sdk':
         specifier: workspace:*
-        version: link:sdk
+        version: link:packages/sdk
       '@solana-program/system':
         specifier: 0.15.0
         version: 0.15.0(@solana/kit@8.3.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@6.0.6))
@@ -240,11 +240,27 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  packages/sdk:
+    dependencies:
+      '@noble/hashes':
+        specifier: 2.4.0
+        version: 2.4.0
+      '@solana/kit':
+        specifier: 8.3.0
+        version: 8.3.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@6.0.6)
+      '@solana/program-client-core':
+        specifier: 8.3.0
+        version: 8.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   scripts:
     dependencies:
       '@selo/sdk':
         specifier: workspace:*
-        version: link:../sdk
+        version: link:../packages/sdk
       '@solana-program/system':
         specifier: 0.15.0
         version: 0.15.0(@solana/kit@8.3.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@6.0.6))
@@ -261,22 +277,6 @@ importers:
       tsx:
         specifier: ^4.20.6
         version: 4.23.15
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
-  sdk:
-    dependencies:
-      '@noble/hashes':
-        specifier: 2.4.0
-        version: 2.4.0
-      '@solana/kit':
-        specifier: 8.3.0
-        version: 8.3.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@6.0.6)
-      '@solana/program-client-core':
-        specifier: 8.3.0
-        version: 8.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)
-    devDependencies:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

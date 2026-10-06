@@ -1,7 +1,7 @@
 packages:
   - app
   - scripts
-  - sdk
+  - packages/sdk
 
 # pnpm blocks dependency build scripts by default; allow only what we need.
 allowBuilds:
