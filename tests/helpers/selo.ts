@@ -6,8 +6,11 @@ import {
   appendTransactionMessageInstructions,
   assertAccountExists,
   createTransactionMessage,
+  type GetAccountInfoApi,
+  type Rpc,
   generateKeyPairSigner,
   getAddressEncoder,
+  getBase64Decoder,
   getBase64Encoder,
   lamports,
   pipe,
@@ -41,7 +44,10 @@ import {
   findLenderPda,
   findProgramDataAddress,
   findSealPda,
+  getAttestInvoiceInstruction,
   getInitializeInstructionAsync,
+  getLockInvoiceInstructionAsync,
+  getReleaseInvoiceInstruction,
   getRegisterLenderInstructionAsync,
   getSealInvoiceInstructionAsync,
   sealArgs,
@@ -337,12 +343,84 @@ export async function registerLender(
 }
 
 /** A registry with lender A and lender B registered. */
+export const LENDER_BALANCE = 100n * USDC;
+
+/** A registry with lenders A and B registered and holding USDC-dev. */
 export async function setupRegistry() {
   const ctx = await setup();
   const { treasury } = await initRegistry(ctx);
   const lenderA = await registerLender(ctx, ctx.lenderA.address, "Lender A");
   const lenderB = await registerLender(ctx, ctx.lenderB.address, "Lender B");
+  await mintTo(ctx, ctx.lenderA.address, LENDER_BALANCE);
+  await mintTo(ctx, ctx.lenderB.address, LENDER_BALANCE);
+  await mintTo(ctx, ctx.stranger.address, LENDER_BALANCE);
   return { ctx, treasury, lenderA, lenderB };
+}
+
+/** Sealed by the supplier and attested by the buyer: ready to lock. */
+export async function setupAttested(invoice: Invoice = INVOICE) {
+  const reg = await setupRegistry();
+  const seal = await sealPdaOf(invoice);
+  await sendOk(reg.ctx.svm, [await sealIx(reg.ctx, invoice)], reg.ctx.supplier);
+  await sendOk(reg.ctx.svm, [attestIx(reg.ctx, seal)], reg.ctx.buyer);
+  return { ...reg, seal };
+}
+
+export function attestIx(ctx: Ctx, seal: Address, buyer = ctx.buyer) {
+  return getAttestInvoiceInstruction({ buyer, seal });
+}
+
+export async function lockIx(
+  ctx: Ctx,
+  treasury: Address,
+  seal: Address,
+  lender: KeyPairSigner,
+  overrides: Partial<{
+    lender: Address;
+    feeMint: Address;
+    lenderToken: Address;
+    treasury: Address;
+  }> = {},
+) {
+  const feeMint = overrides.feeMint ?? ctx.feeMint;
+  return getLockInvoiceInstructionAsync({
+    lenderAuthority: lender,
+    lender: overrides.lender,
+    seal,
+    feeMint,
+    lenderToken:
+      overrides.lenderToken ?? (await ctx.ata(lender.address, feeMint)),
+    treasury: overrides.treasury ?? treasury,
+  });
+}
+
+export function releaseIx(seal: Address, lender: KeyPairSigner) {
+  return getReleaseInvoiceInstruction({ lenderAuthority: lender, seal });
+}
+
+/** A read-only RPC over LiteSVM, enough for checkInvoice() and explainError(). */
+export function svmRpc(svm: LiteSVM): Rpc<GetAccountInfoApi> {
+  const b64 = getBase64Decoder();
+  return {
+    getAccountInfo: (address: Address) => ({
+      send: async () => {
+        const acc = svm.getAccount(address);
+        return {
+          context: { slot: 0n },
+          value: acc.exists
+            ? {
+                data: [b64.decode(acc.data), "base64"],
+                executable: acc.executable,
+                lamports: acc.lamports,
+                owner: acc.programAddress,
+                space: BigInt(acc.data.length),
+                rentEpoch: 0n,
+              }
+            : null,
+        };
+      },
+    }),
+  } as unknown as Rpc<GetAccountInfoApi>;
 }
 
 export async function sealIx(
