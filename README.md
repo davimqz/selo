@@ -12,6 +12,14 @@ A public, neutral invoice registry on Solana that blocks financing the same invo
 > Work in progress for the Colosseum Crypto World's Fair (Solana track). Devnet only, test tokens
 > only. Plan: [`TASKS.md`](TASKS.md).
 
+## Devnet
+
+| | |
+|---|---|
+| Program ID | [`4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio`](https://explorer.solana.com/address/4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio?cluster=devnet) |
+| `USDC-dev` fee mint (test token) | [`Gj8cs9urnjgy29Nz3k5EQNrJZLbapCDSi55X4SU4xAqv`](https://explorer.solana.com/address/Gj8cs9urnjgy29Nz3k5EQNrJZLbapCDSi55X4SU4xAqv?cluster=devnet) |
+| Lock fee | 1 `USDC-dev` |
+
 ## Layout
 
 ```
@@ -44,6 +52,15 @@ corepack enable && pnpm install
 # 4. Build + test
 pnpm test:program      # anchor build → Codama client (packages/sdk/src/generated) → vitest on LiteSVM
 pnpm lint              # prettier + rustfmt + clippy + eslint
+```
+
+## Demo on a cluster
+
+```bash
+# RPC_URL and WALLET_PATH (program upgrade authority) in .env — see .env.example
+LENDER_A=<wallet> LENDER_B=<wallet> SUPPLIER=<wallet> BUYER=<wallet> pnpm seed-demo
+pnpm e2e-demo 3        # the five demo moments, 3 times, through the app's transaction code
+pnpm --filter app dev  # NEXT_PUBLIC_RPC_URL in app/.env.local
 ```
 
 ## License
