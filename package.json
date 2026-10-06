@@ -19,7 +19,7 @@
     "lint:rs": "cargo fmt --all -- --check && cargo clippy --all-targets -- -D warnings",
     "format": "prettier --write \"tests/**/*.ts\" \"scripts/**/*.{ts,mjs}\" \"packages/sdk/{src,test}/*.ts\" && cargo fmt --all",
     "localnet": "NO_DNA=1 surfpool start --no-tui",
-    "usdc:mock": "pnpm --filter scripts usdc:mock"
+    "create-mint": "pnpm --filter scripts create-mint"
   },
   "devDependencies": {
     "@codama/nodes-from-anchor": "1.5.6",

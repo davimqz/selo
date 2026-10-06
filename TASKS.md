@@ -30,7 +30,7 @@ Organizado por dia: o prazo é a restrição dominante. Marque cada item (`[x]`)
 
 ## Dia 2 — Quinta 08/10 · Atestação + travamento + SDK
 
-- [ ] Script `scripts/create-mint.ts` (`USDC-dev`, 6 decimais) e mint para as carteiras de teste.
+- [x] Script `scripts/create-mint.ts` (`USDC-dev`, 6 decimais) e mint para as carteiras de teste.
 - [ ] `attest_invoice`, `lock_invoice` (com cobrança da taxa), `release_invoice`.
 - [ ] Erro customizado de "já travada" e tradução no SDK ("já financiada por X em DD/MM").
 - [ ] `checkInvoice()` no SDK.

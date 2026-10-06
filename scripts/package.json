@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "usdc:mock": "tsx src/create-mock-usdc.ts",
+    "create-mint": "tsx src/create-mint.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
