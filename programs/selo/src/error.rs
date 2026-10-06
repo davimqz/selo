@@ -26,4 +26,14 @@ pub enum SeloError {
     InvalidCurrency,
     #[msg("Buyer must be a different, non-default account")]
     InvalidBuyer,
+    #[msg("This invoice is already financed: another lender has locked it")]
+    InvoiceAlreadyLocked,
+    #[msg("The buyer has not attested this invoice")]
+    NotAttested,
+    #[msg("The buyer has already attested this invoice")]
+    AlreadyAttested,
+    #[msg("Lender is not active")]
+    LenderInactive,
+    #[msg("Only the lender that locked the invoice can release it")]
+    NotLockHolder,
 }

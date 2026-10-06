@@ -1,13 +1,19 @@
+pub mod attest_invoice;
 pub mod cancel_seal;
 pub mod initialize;
+pub mod lock_invoice;
 pub mod register_lender;
+pub mod release_invoice;
 pub mod seal_invoice;
 pub mod set_lender_active;
 pub mod set_paused;
 
+pub use attest_invoice::*;
 pub use cancel_seal::*;
 pub use initialize::*;
+pub use lock_invoice::*;
 pub use register_lender::*;
+pub use release_invoice::*;
 pub use seal_invoice::*;
 pub use set_lender_active::*;
 pub use set_paused::*;

@@ -59,4 +59,16 @@ pub mod selo {
     pub fn cancel_seal(ctx: Context<CancelSeal>) -> Result<()> {
         instructions::cancel_seal::handle_cancel_seal(ctx)
     }
+
+    pub fn attest_invoice(ctx: Context<AttestInvoice>) -> Result<()> {
+        instructions::attest_invoice::handle_attest_invoice(ctx)
+    }
+
+    pub fn lock_invoice(ctx: Context<LockInvoice>) -> Result<()> {
+        instructions::lock_invoice::handle_lock_invoice(ctx)
+    }
+
+    pub fn release_invoice(ctx: Context<ReleaseInvoice>) -> Result<()> {
+        instructions::release_invoice::handle_release_invoice(ctx)
+    }
 }

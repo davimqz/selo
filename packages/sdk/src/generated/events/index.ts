@@ -6,5 +6,8 @@
  * @see https://github.com/codama-idl/codama
  */
 
+export * from "./invoiceAttested";
 export * from "./invoiceCancelled";
+export * from "./invoiceLocked";
+export * from "./invoiceReleased";
 export * from "./invoiceSealed";

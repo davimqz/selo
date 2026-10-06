@@ -6,9 +6,12 @@
  * @see https://github.com/codama-idl/codama
  */
 
+export * from "./attestInvoice";
 export * from "./cancelSeal";
 export * from "./initialize";
+export * from "./lockInvoice";
 export * from "./registerLender";
+export * from "./releaseInvoice";
 export * from "./sealInvoice";
 export * from "./setLenderActive";
 export * from "./setPaused";

@@ -38,8 +38,19 @@ export const SELO_ERROR__DUE_DATE_IN_PAST = 0x1779; // 6009
 export const SELO_ERROR__INVALID_CURRENCY = 0x177a; // 6010
 /** InvalidBuyer: Buyer must be a different, non-default account */
 export const SELO_ERROR__INVALID_BUYER = 0x177b; // 6011
+/** InvoiceAlreadyLocked: This invoice is already financed: another lender has locked it */
+export const SELO_ERROR__INVOICE_ALREADY_LOCKED = 0x177c; // 6012
+/** NotAttested: The buyer has not attested this invoice */
+export const SELO_ERROR__NOT_ATTESTED = 0x177d; // 6013
+/** AlreadyAttested: The buyer has already attested this invoice */
+export const SELO_ERROR__ALREADY_ATTESTED = 0x177e; // 6014
+/** LenderInactive: Lender is not active */
+export const SELO_ERROR__LENDER_INACTIVE = 0x177f; // 6015
+/** NotLockHolder: Only the lender that locked the invoice can release it */
+export const SELO_ERROR__NOT_LOCK_HOLDER = 0x1780; // 6016
 
 export type SeloError =
+  | typeof SELO_ERROR__ALREADY_ATTESTED
   | typeof SELO_ERROR__DUE_DATE_IN_PAST
   | typeof SELO_ERROR__INVALID_AMOUNT
   | typeof SELO_ERROR__INVALID_BUYER
@@ -47,15 +58,20 @@ export type SeloError =
   | typeof SELO_ERROR__INVALID_FEE_MINT
   | typeof SELO_ERROR__INVALID_LENDER_NAME
   | typeof SELO_ERROR__INVALID_STATUS
+  | typeof SELO_ERROR__INVOICE_ALREADY_LOCKED
   | typeof SELO_ERROR__INVOICE_ALREADY_SEALED
+  | typeof SELO_ERROR__LENDER_INACTIVE
   | typeof SELO_ERROR__LOCK_FEE_TOO_HIGH
   | typeof SELO_ERROR__MATH_OVERFLOW
+  | typeof SELO_ERROR__NOT_ATTESTED
+  | typeof SELO_ERROR__NOT_LOCK_HOLDER
   | typeof SELO_ERROR__NOT_UPGRADE_AUTHORITY
   | typeof SELO_ERROR__PAUSED;
 
 let seloErrorMessages: Record<SeloError, string> | undefined;
 if (process.env["NODE_ENV"] !== "production") {
   seloErrorMessages = {
+    [SELO_ERROR__ALREADY_ATTESTED]: `The buyer has already attested this invoice`,
     [SELO_ERROR__DUE_DATE_IN_PAST]: `Due date must be in the future`,
     [SELO_ERROR__INVALID_AMOUNT]: `Amount must be greater than zero`,
     [SELO_ERROR__INVALID_BUYER]: `Buyer must be a different, non-default account`,
@@ -63,9 +79,13 @@ if (process.env["NODE_ENV"] !== "production") {
     [SELO_ERROR__INVALID_FEE_MINT]: `Fee mint must have 6 decimals`,
     [SELO_ERROR__INVALID_LENDER_NAME]: `Lender name must be 1 to 32 bytes and not blank`,
     [SELO_ERROR__INVALID_STATUS]: `Invoice is not in a valid status for this action`,
+    [SELO_ERROR__INVOICE_ALREADY_LOCKED]: `This invoice is already financed: another lender has locked it`,
     [SELO_ERROR__INVOICE_ALREADY_SEALED]: `This invoice is already sealed: it cannot be registered twice`,
+    [SELO_ERROR__LENDER_INACTIVE]: `Lender is not active`,
     [SELO_ERROR__LOCK_FEE_TOO_HIGH]: `Lock fee exceeds the maximum`,
     [SELO_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
+    [SELO_ERROR__NOT_ATTESTED]: `The buyer has not attested this invoice`,
+    [SELO_ERROR__NOT_LOCK_HOLDER]: `Only the lender that locked the invoice can release it`,
     [SELO_ERROR__NOT_UPGRADE_AUTHORITY]: `Signer is not the program's upgrade authority`,
     [SELO_ERROR__PAUSED]: `Registry is paused`,
   };

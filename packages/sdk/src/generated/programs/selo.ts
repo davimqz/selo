@@ -45,27 +45,39 @@ import {
   type SealArgs,
 } from "../accounts";
 import {
+  getAttestInvoiceInstruction,
   getCancelSealInstruction,
   getInitializeInstructionAsync,
+  getLockInvoiceInstructionAsync,
   getRegisterLenderInstructionAsync,
+  getReleaseInvoiceInstruction,
   getSealInvoiceInstructionAsync,
   getSetLenderActiveInstructionAsync,
   getSetPausedInstructionAsync,
+  parseAttestInvoiceInstruction,
   parseCancelSealInstruction,
   parseInitializeInstruction,
+  parseLockInvoiceInstruction,
   parseRegisterLenderInstruction,
+  parseReleaseInvoiceInstruction,
   parseSealInvoiceInstruction,
   parseSetLenderActiveInstruction,
   parseSetPausedInstruction,
+  type AttestInvoiceInput,
   type CancelSealInput,
   type InitializeAsyncInput,
+  type LockInvoiceAsyncInput,
+  type ParsedAttestInvoiceInstruction,
   type ParsedCancelSealInstruction,
   type ParsedInitializeInstruction,
+  type ParsedLockInvoiceInstruction,
   type ParsedRegisterLenderInstruction,
+  type ParsedReleaseInvoiceInstruction,
   type ParsedSealInvoiceInstruction,
   type ParsedSetLenderActiveInstruction,
   type ParsedSetPausedInstruction,
   type RegisterLenderAsyncInput,
+  type ReleaseInvoiceInput,
   type SealInvoiceAsyncInput,
   type SetLenderActiveAsyncInput,
   type SetPausedAsyncInput,
@@ -125,7 +137,10 @@ export function identifySeloAccount(
 }
 
 export enum SeloEvent {
+  InvoiceAttested,
   InvoiceCancelled,
+  InvoiceLocked,
+  InvoiceReleased,
   InvoiceSealed,
 }
 
@@ -137,12 +152,45 @@ export function identifySeloEvent(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([202, 60, 126, 83, 137, 22, 175, 138]),
+      ),
+      0,
+    )
+  ) {
+    return SeloEvent.InvoiceAttested;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([62, 68, 182, 115, 197, 226, 135, 244]),
       ),
       0,
     )
   ) {
     return SeloEvent.InvoiceCancelled;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([74, 219, 221, 40, 234, 157, 238, 69]),
+      ),
+      0,
+    )
+  ) {
+    return SeloEvent.InvoiceLocked;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([133, 0, 85, 211, 79, 44, 118, 18]),
+      ),
+      0,
+    )
+  ) {
+    return SeloEvent.InvoiceReleased;
   }
   if (
     containsBytes(
@@ -161,9 +209,12 @@ export function identifySeloEvent(
 }
 
 export enum SeloInstruction {
+  AttestInvoice,
   CancelSeal,
   Initialize,
+  LockInvoice,
   RegisterLender,
+  ReleaseInvoice,
   SealInvoice,
   SetLenderActive,
   SetPaused,
@@ -173,6 +224,17 @@ export function identifySeloInstruction(
   instruction: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
 ): SeloInstruction {
   const data = "data" in instruction ? instruction.data : instruction;
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([65, 96, 168, 230, 100, 48, 117, 58]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.AttestInvoice;
+  }
   if (
     containsBytes(
       data,
@@ -199,12 +261,34 @@ export function identifySeloInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([75, 15, 221, 192, 193, 84, 21, 111]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.LockInvoice;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([106, 218, 85, 233, 227, 161, 105, 68]),
       ),
       0,
     )
   ) {
     return SeloInstruction.RegisterLender;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([136, 207, 33, 108, 247, 129, 248, 123]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.ReleaseInvoice;
   }
   if (
     containsBytes(
@@ -249,14 +333,23 @@ export type ParsedSeloInstruction<
   TProgram extends string = "4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio",
 > =
   | ({
+      instructionType: SeloInstruction.AttestInvoice;
+    } & ParsedAttestInvoiceInstruction<TProgram>)
+  | ({
       instructionType: SeloInstruction.CancelSeal;
     } & ParsedCancelSealInstruction<TProgram>)
   | ({
       instructionType: SeloInstruction.Initialize;
     } & ParsedInitializeInstruction<TProgram>)
   | ({
+      instructionType: SeloInstruction.LockInvoice;
+    } & ParsedLockInvoiceInstruction<TProgram>)
+  | ({
       instructionType: SeloInstruction.RegisterLender;
     } & ParsedRegisterLenderInstruction<TProgram>)
+  | ({
+      instructionType: SeloInstruction.ReleaseInvoice;
+    } & ParsedReleaseInvoiceInstruction<TProgram>)
   | ({
       instructionType: SeloInstruction.SealInvoice;
     } & ParsedSealInvoiceInstruction<TProgram>)
@@ -272,6 +365,13 @@ export function parseSeloInstruction<TProgram extends string>(
 ): ParsedSeloInstruction<TProgram> {
   const instructionType = identifySeloInstruction(instruction);
   switch (instructionType) {
+    case SeloInstruction.AttestInvoice: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.AttestInvoice,
+        ...parseAttestInvoiceInstruction(instruction),
+      };
+    }
     case SeloInstruction.CancelSeal: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -286,11 +386,25 @@ export function parseSeloInstruction<TProgram extends string>(
         ...parseInitializeInstruction(instruction),
       };
     }
+    case SeloInstruction.LockInvoice: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.LockInvoice,
+        ...parseLockInvoiceInstruction(instruction),
+      };
+    }
     case SeloInstruction.RegisterLender: {
       assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: SeloInstruction.RegisterLender,
         ...parseRegisterLenderInstruction(instruction),
+      };
+    }
+    case SeloInstruction.ReleaseInvoice: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.ReleaseInvoice,
+        ...parseReleaseInvoiceInstruction(instruction),
       };
     }
     case SeloInstruction.SealInvoice: {
@@ -340,6 +454,10 @@ export type SeloPluginAccounts = {
 };
 
 export type SeloPluginInstructions = {
+  attestInvoice: (
+    input: AttestInvoiceInput,
+  ) => ReturnType<typeof getAttestInvoiceInstruction> &
+    SelfPlanAndSendFunctions;
   cancelSeal: (
     input: CancelSealInput,
   ) => ReturnType<typeof getCancelSealInstruction> & SelfPlanAndSendFunctions;
@@ -347,9 +465,17 @@ export type SeloPluginInstructions = {
     input: InitializeAsyncInput,
   ) => ReturnType<typeof getInitializeInstructionAsync> &
     SelfPlanAndSendFunctions;
+  lockInvoice: (
+    input: LockInvoiceAsyncInput,
+  ) => ReturnType<typeof getLockInvoiceInstructionAsync> &
+    SelfPlanAndSendFunctions;
   registerLender: (
     input: RegisterLenderAsyncInput,
   ) => ReturnType<typeof getRegisterLenderInstructionAsync> &
+    SelfPlanAndSendFunctions;
+  releaseInvoice: (
+    input: ReleaseInvoiceInput,
+  ) => ReturnType<typeof getReleaseInvoiceInstruction> &
     SelfPlanAndSendFunctions;
   sealInvoice: (
     input: SealInvoiceAsyncInput,
@@ -389,6 +515,11 @@ export function seloProgram() {
           seal: addSelfFetchFunctions(client, getSealCodec()),
         },
         instructions: {
+          attestInvoice: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getAttestInvoiceInstruction(input),
+            ),
           cancelSeal: (input) =>
             addSelfPlanAndSendFunctions(
               client,
@@ -399,10 +530,20 @@ export function seloProgram() {
               client,
               getInitializeInstructionAsync(input),
             ),
+          lockInvoice: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getLockInvoiceInstructionAsync(input),
+            ),
           registerLender: (input) =>
             addSelfPlanAndSendFunctions(
               client,
               getRegisterLenderInstructionAsync(input),
+            ),
+          releaseInvoice: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getReleaseInvoiceInstruction(input),
             ),
           sealInvoice: (input) =>
             addSelfPlanAndSendFunctions(
