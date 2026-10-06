@@ -10,19 +10,25 @@ node_modules
 .yarn
 .pnpm-store
 
-# Next.js
+# Next.js / Vercel
 app/.next
 app/out
 app/next-env.d.ts
+.vercel
 *.tsbuildinfo
 
-# Env and secrets — never commit keys
+# Env and secrets — never commit keys.
+# Keypairs are matched by name (a blanket *.json would also hide package.json).
 .env
 .env.*
 !.env.example
 *-keypair.json
+*.keypair.json
 id.json
+keys/
+wallets/
 scripts/.localnet.json
+scripts/.devnet.json
 
 # OS / editor
 .DS_Store
