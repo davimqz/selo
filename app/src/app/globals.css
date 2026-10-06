@@ -1,26 +1,134 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --paper: #f7f4ee;
+  --wash: #ece7dc;
+  --ink: #1d1b17;
+  --muted: #6b655a;
+  --line: #d9d2c3;
+  --free: #2f6b4f;
+  --stamp: #b42318;
+  --amber: #9a6a00;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #16150f;
+    --wash: #24221b;
+    --ink: #ece7dc;
+    --muted: #a39d90;
+    --line: #3a372e;
+    --free: #6fc196;
+    --stamp: #ff7a6b;
+    --amber: #e3b34c;
   }
 }
 
+@theme inline {
+  --color-paper: var(--paper);
+  --color-wash: var(--wash);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-free: var(--free);
+  --color-stamp: var(--stamp);
+  --color-amber: var(--amber);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-plex-sans), system-ui, sans-serif;
+}
+
+.devnet-banner {
+  background: var(--amber);
+  color: #fff;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 1rem;
+}
+
+.seal-mark {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  border: 2px solid var(--stamp);
+  box-shadow:
+    inset 0 0 0 2px var(--paper),
+    inset 0 0 0 4px var(--stamp);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: opacity 0.15s;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-ghost {
+  border: 1px solid var(--line);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--wash);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.field input {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.95rem;
+}
+.field input:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: -1px;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+}
+
+/* The rejection stamp: moments 4 and 5 of the demo. */
+.stamp {
+  border: 3px double var(--stamp);
+  color: var(--stamp);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  animation: stamp-in 0.25s ease-out;
+}
+@keyframes stamp-in {
+  from {
+    transform: scale(1.06) rotate(-1deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
 }
