@@ -1,7 +1,7 @@
 [package]
 name = "selo"
 version = "0.1.0"
-description = "Selo: programmable letter of credit (USDC escrow released by shipment attestations)"
+description = "Selo: public registry that blocks financing the same invoice twice"
 edition.workspace = true
 rust-version.workspace = true
 
