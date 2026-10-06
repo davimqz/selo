@@ -5,6 +5,7 @@
   "scripts": {
     "create-mint": "tsx src/create-mint.ts",
     "seed-demo": "tsx src/seed-demo.ts",
+    "e2e-demo": "tsx src/e2e-demo.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

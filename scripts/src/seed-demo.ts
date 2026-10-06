@@ -53,15 +53,18 @@ function walletFromEnv(name: string): Address | undefined {
   return value ? address(value) : undefined;
 }
 
-async function main() {
-  const lenderA = walletFromEnv("LENDER_A");
-  const lenderB = walletFromEnv("LENDER_B");
-  if (!lenderA || !lenderB) {
-    throw new Error("Set LENDER_A and LENDER_B to the two lenders' wallets.");
-  }
-  const supplier = walletFromEnv("SUPPLIER");
-  const buyer = walletFromEnv("BUYER");
+export interface DemoWallets {
+  lenderA: Address;
+  lenderB: Address;
+  supplier?: Address;
+  buyer?: Address;
+}
 
+export async function seedDemo(
+  { lenderA, lenderB, supplier, buyer }: DemoWallets,
+  names: [string, string] = ["Lender A", "Lender B"],
+  saveToState = true,
+) {
   const admin = await loadKeypair();
   await fundPayerOnLocalnet(admin);
   const feeMint = await ensureFeeMint(admin);
@@ -92,8 +95,8 @@ async function main() {
 
   // lenders
   for (const [name, wallet] of [
-    ["Lender A", lenderA],
-    ["Lender B", lenderB],
+    [names[0], lenderA],
+    [names[1], lenderB],
   ] as const) {
     const [pda] = await findLenderPda({ lenderAuthority: wallet });
     const lender = await fetchMaybeLender(rpc, pda);
@@ -138,18 +141,36 @@ async function main() {
     console.log(`Topped ${wallet} up to 0.1 SOL`);
   }
 
-  writeState({
-    ...readState(),
-    config: configPda,
-    lenderA,
-    lenderB,
-    ...(supplier && { supplier }),
-    ...(buyer && { buyer }),
-  });
+  if (saveToState)
+    writeState({
+      ...readState(),
+      config: configPda,
+      lenderA,
+      lenderB,
+      ...(supplier && { supplier }),
+      ...(buyer && { buyer }),
+    });
   console.log(`Demo ready on ${cluster}. Fee mint: ${feeMint}`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+async function main() {
+  const lenderA = walletFromEnv("LENDER_A");
+  const lenderB = walletFromEnv("LENDER_B");
+  if (!lenderA || !lenderB) {
+    throw new Error("Set LENDER_A and LENDER_B to the two lenders' wallets.");
+  }
+  await seedDemo({
+    lenderA,
+    lenderB,
+    supplier: walletFromEnv("SUPPLIER"),
+    buyer: walletFromEnv("BUYER"),
+  });
+}
+
+// Run only as a CLI, not when imported by e2e-demo.
+if (process.argv[1] && /seed-demo\.ts$/.test(process.argv[1])) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

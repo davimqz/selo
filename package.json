@@ -20,7 +20,8 @@
     "format": "prettier --write \"tests/**/*.ts\" \"scripts/**/*.{ts,mjs}\" \"packages/sdk/{src,test}/*.ts\" && cargo fmt --all",
     "localnet": "NO_DNA=1 surfpool start --no-tui",
     "create-mint": "pnpm --filter scripts create-mint",
-    "seed-demo": "pnpm --filter scripts seed-demo"
+    "seed-demo": "pnpm --filter scripts seed-demo",
+    "e2e-demo": "pnpm --filter scripts e2e-demo"
   },
   "devDependencies": {
     "@codama/nodes-from-anchor": "1.5.6",
