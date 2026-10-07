@@ -26,9 +26,9 @@ A public, neutral invoice registry on Solana that blocks financing the same invo
 programs/selo/   Anchor program
 packages/sdk/    canonical invoice hash, checkInvoice(), generated client (Codama)
 app/             Next.js frontend
-scripts/         test mint, initialize, demo seed
+scripts/         test mint, demo seed, e2e-demo
 tests/           program tests (vitest + LiteSVM)
-docs/            pitch, demo script
+docs/            pitch, demo script (docs/demo.md)
 ```
 
 ## Development setup
