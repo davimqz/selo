@@ -10,7 +10,7 @@ Organizado por dia: o prazo é a restrição dominante. Marque cada item (`[x]`)
 - [x] Repositório público no GitHub com as pastas do `CLAUDE.md` Seção 12, trabalhando numa branch (`dev`).
 - [x] Programa Anchor `selo` buildando e `anchor test` rodando (mesmo vazio).
 - [x] `.gitignore` conforme `CLAUDE.md` Seção 10.
-- [ ] RPC devnet da Helius em `.env` (nunca commitado) + `.env.example` documentado.
+- [x] RPC devnet da Helius em `.env` (nunca commitado) + `.env.example` documentado.
 - [ ] Mandar mensagem para 5-10 pessoas que financiam recebíveis (factorings, fintechs de crédito, protocolos de crédito on-chain, tesourarias): *"Antes de financiar uma fatura, vocês consultariam um registro global que mostra se ela já foi financiada por outro credor?"*
 
 **Critério de pronto**: repositório público, programa buildando, testes rodando.

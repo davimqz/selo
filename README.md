@@ -16,6 +16,7 @@ A public, neutral invoice registry on Solana that blocks financing the same invo
 
 | | |
 |---|---|
+| App | [selo-iota-three.vercel.app](https://selo-iota-three.vercel.app) |
 | Program ID | [`4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio`](https://explorer.solana.com/address/4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio?cluster=devnet) |
 | `USDC-dev` fee mint (test token) | [`Gj8cs9urnjgy29Nz3k5EQNrJZLbapCDSi55X4SU4xAqv`](https://explorer.solana.com/address/Gj8cs9urnjgy29Nz3k5EQNrJZLbapCDSi55X4SU4xAqv?cluster=devnet) |
 | Lock fee | 1 `USDC-dev` |

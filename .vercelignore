@@ -1,0 +1,19 @@
+# The Vercel CLI uploads from the repo root. Allow only what the app build
+# needs: never keypairs, wallets, .env files or build output.
+/*
+!/app
+!/packages
+!/scripts
+!/package.json
+!/pnpm-lock.yaml
+!/pnpm-workspace.yaml
+!/.nvmrc
+!/tsconfig.json
+**/node_modules
+**/.next
+**/.env*
+**/*keypair*.json
+**/id.json
+scripts/wallets
+scripts/.devnet.json
+app/tsconfig.tsbuildinfo
