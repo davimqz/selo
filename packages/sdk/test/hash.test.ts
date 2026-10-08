@@ -5,6 +5,7 @@ import {
   canonicalize,
   fromHex,
   invoiceHash,
+  partyIdHash,
   sealArgs,
   toHex,
 } from "../src/hash";
@@ -113,5 +114,27 @@ describe("canonical invoice hash v1", () => {
     expect(toHex(fromHex(GOLDEN_HASH))).toBe(GOLDEN_HASH);
     expect(toHex(fromHex(`0x${GOLDEN_HASH.toUpperCase()}`))).toBe(GOLDEN_HASH);
     expect(() => fromHex("abc")).toThrow();
+  });
+});
+
+describe("party ID hash v1", () => {
+  // Pinned: it seeds every verified Buyer account on-chain.
+  const GOLDEN_PARTY =
+    "59bd1717e1644f5880f0f30270b3047d23b89049b429739d08a36197c2063189";
+
+  it.each(["BUYER-001", "buyer 001", " B.U.Y.E.R/001 "])(
+    "same hash for %o",
+    (taxId) => {
+      expect(toHex(partyIdHash(taxId))).toBe(GOLDEN_PARTY);
+    },
+  );
+
+  it("differs from the invoice hash domain and from other companies", () => {
+    expect(toHex(partyIdHash("BUYER-002"))).not.toBe(GOLDEN_PARTY);
+    expect(toHex(partyIdHash("BUYER-001"))).not.toBe(GOLDEN_HASH);
+  });
+
+  it("rejects an empty tax ID", () => {
+    expect(() => partyIdHash(" -./ ")).toThrow(InvalidInvoiceError);
   });
 });

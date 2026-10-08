@@ -130,6 +130,22 @@ export function invoiceHash(invoice: Invoice): Uint8Array {
   return sha256(new TextEncoder().encode(canonicalize(invoice)));
 }
 
+/**
+ * Hash of a company's tax ID, the seed of its verified `Buyer` account:
+ *
+ *   sha256(utf8("v1|party|" + canonical tax ID))
+ *
+ * A lender holding the invoice derives the buyer's account from it and checks
+ * that the wallet that attested is the company named on the invoice.
+ */
+export function partyIdHash(taxId: string): Uint8Array {
+  return sha256(
+    new TextEncoder().encode(
+      `${INVOICE_HASH_VERSION}|party|${canonicalTaxId(taxId)}`,
+    ),
+  );
+}
+
 /** The fields `seal_invoice` stores in clear, derived from the same invoice. */
 export function sealArgs(invoice: Invoice) {
   const currency = canonicalCurrency(invoice.currency);

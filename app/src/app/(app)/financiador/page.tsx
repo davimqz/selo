@@ -12,6 +12,7 @@ import {
   checkInvoice,
   fetchConfig,
   fetchMaybeLender,
+  findBuyerRecordByTaxId,
   findConfigPda,
   findLenderPda,
   getLockInvoiceInstructionAsync,
@@ -80,7 +81,7 @@ function LenderDesk({
   }, [wallet, deskVersion]);
 
   async function lock() {
-    if (!lookup || !desk) return;
+    if (!lookup || !desk || typeof lookup.ref === "string") return;
     setOutcome({ kind: "busy", text: "Locking…" });
     try {
       const signature = await sendSeloTx(
@@ -89,6 +90,9 @@ function LenderDesk({
           await getLockInvoiceInstructionAsync({
             lenderAuthority: signer,
             seal: lookup.check.seal,
+            // The verified company named on the invoice: the program checks
+            // it is the wallet that attested.
+            buyerRecord: await findBuyerRecordByTaxId(lookup.ref.buyerTaxId),
             feeMint: desk.feeMint,
             lenderToken: desk.token,
             treasury: desk.treasury,
@@ -154,7 +158,13 @@ function LenderDesk({
       {lookup && (
         <section className="space-y-4">
           <InvoiceStatus check={lookup.check} />
-          {lookup.check.status !== "free" && (
+          {lookup.check.status !== "free" && typeof lookup.ref === "string" && (
+            <p className="text-muted text-sm">
+              To finance, look the invoice up by its data: the lock checks the
+              buyer&apos;s verified identity against the tax ID on the invoice.
+            </p>
+          )}
+          {lookup.check.status !== "free" && typeof lookup.ref !== "string" && (
             <button
               type="button"
               className="btn btn-primary"

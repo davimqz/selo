@@ -26,6 +26,26 @@ pub struct Lender {
     pub bump: u8,
 }
 
+/// A buyer whose identity was verified off-chain (KYB) by the registry.
+///
+/// Keyed by the hash of the buyer's tax ID, so a company has exactly one
+/// signing wallet, and anyone holding the invoice data can derive it and check
+/// that the wallet attesting an invoice is the company named on it.
+#[account]
+#[derive(InitSpace)]
+pub struct Buyer {
+    /// The wallet (or multisig vault) allowed to attest for this company.
+    pub authority: Pubkey,
+    /// `sha256("v1|party|" + canonical tax ID)`, see `packages/sdk`.
+    pub tax_id_hash: [u8; 32],
+    #[max_len(MAX_BUYER_NAME_LEN)]
+    pub name: String,
+    /// Cleared by the admin to revoke the verification.
+    pub active: bool,
+    pub verified_at: i64,
+    pub bump: u8,
+}
+
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace, Debug)]
 pub enum SealStatus {
     Sealed,

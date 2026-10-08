@@ -36,4 +36,10 @@ pub enum SeloError {
     LenderInactive,
     #[msg("Only the lender that locked the invoice can release it")]
     NotLockHolder,
+    #[msg("Buyer name must be 1 to 32 bytes and not blank")]
+    InvalidBuyerName,
+    #[msg("The buyer's identity is not verified in the registry")]
+    BuyerNotVerified,
+    #[msg("The invoice's buyer is not the verified company on the invoice")]
+    BuyerMismatch,
 }

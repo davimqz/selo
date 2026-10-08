@@ -6,6 +6,7 @@
  * @see https://github.com/codama-idl/codama
  */
 
+export * from "./buyer";
 export * from "./config";
 export * from "./lender";
 export * from "./seal";

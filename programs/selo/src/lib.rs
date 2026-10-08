@@ -34,6 +34,18 @@ pub mod selo {
         instructions::set_lender_active::handle_set_lender_active(ctx, active)
     }
 
+    pub fn register_buyer(
+        ctx: Context<RegisterBuyer>,
+        tax_id_hash: [u8; 32],
+        name: String,
+    ) -> Result<()> {
+        instructions::register_buyer::handle_register_buyer(ctx, tax_id_hash, name)
+    }
+
+    pub fn set_buyer_active(ctx: Context<SetBuyerActive>, active: bool) -> Result<()> {
+        instructions::set_buyer_active::handle_set_buyer_active(ctx, active)
+    }
+
     pub fn set_paused(ctx: Context<SetPaused>, paused: bool) -> Result<()> {
         instructions::set_paused::handle_set_paused(ctx, paused)
     }

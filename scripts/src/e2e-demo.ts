@@ -19,6 +19,7 @@ import {
   type Invoice,
   checkInvoice,
   fetchConfig,
+  findBuyerRecordByTaxId,
   findConfigPda,
   getAttestInvoiceInstruction,
   getLockInvoiceInstructionAsync,
@@ -29,6 +30,9 @@ import {
 import { cluster, loadKeypair, rpc, rpcUrl } from "./lib";
 import { ataOf } from "./mint";
 import { seedDemo } from "./seed-demo";
+
+/** The e2e buyer's company: never the app's sample one, which the demo buyer holds. */
+const E2E_BUYER = { taxId: "E2E BUYER 001", name: "E2E Buyer" };
 
 // The app reads its RPC from NEXT_PUBLIC_RPC_URL; point it at ours.
 process.env.NEXT_PUBLIC_RPC_URL = rpcUrl;
@@ -82,7 +86,7 @@ async function runOnce(
   const due = new Date(Date.now() + 90 * 86_400_000).toISOString().slice(0, 10);
   const invoice: Invoice = {
     supplierTaxId: "DE 811 907 980",
-    buyerTaxId: "US 94-1081436",
+    buyerTaxId: E2E_BUYER.taxId,
     number: `E2E-${stamp}`,
     amount: "1250000",
     currency: "USD",
@@ -120,10 +124,19 @@ async function runOnce(
     toAttest.some((s) => s.address === sealed.seal),
     "   listed under the buyer",
   );
+  const buyerRecord = await findBuyerRecordByTaxId(invoice.buyerTaxId);
   await sendSeloTx(w.buyer, [
-    getAttestInvoiceInstruction({ buyer: w.buyer, seal: sealed.seal }),
+    getAttestInvoiceInstruction({
+      buyer: w.buyer,
+      seal: sealed.seal,
+      buyerRecord,
+    }),
   ]);
-  check((await checkInvoice(rpc, invoice)).attested, "2. buyer attested it");
+  const attested = await checkInvoice(rpc, invoice);
+  check(
+    attested.attested && attested.buyer?.verification === "verified",
+    "2. verified buyer attested it",
+  );
 
   // 3. Lender A checks and locks.
   const lock = async (lender: KeyPairSigner) =>
@@ -133,6 +146,7 @@ async function runOnce(
         await getLockInvoiceInstructionAsync({
           lenderAuthority: lender,
           seal: sealed.seal,
+          buyerRecord,
           feeMint: config.data.feeMint,
           lenderToken: await ataOf(lender.address, config.data.feeMint),
           treasury: config.data.treasury,
@@ -160,7 +174,7 @@ async function runOnce(
   const retyped: Invoice = {
     ...invoice,
     supplierTaxId: "de811907980",
-    buyerTaxId: "us 94 1081436",
+    buyerTaxId: "e2e-buyer-001",
     number: `  e2e-${stamp.toLowerCase()} `,
   };
   check(
@@ -201,6 +215,7 @@ async function main() {
     },
     ["E2E Lender A", "E2E Lender B"],
     false,
+    E2E_BUYER,
   );
   for (let i = 1; i <= runs; i++) await runOnce(i, w);
   console.log(`\nAll ${runs} run(s) passed on ${cluster}.`);

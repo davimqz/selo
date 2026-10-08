@@ -26,6 +26,7 @@ import {
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
+  type ReadonlyAccount,
   type ReadonlySignerAccount,
   type ReadonlyUint8Array,
   type WritableAccount,
@@ -54,6 +55,7 @@ export type AttestInvoiceInstruction<
   TProgram extends string = typeof SELO_PROGRAM_ADDRESS,
   TAccountBuyer extends string | AccountMeta<string> = string,
   TAccountSeal extends string | AccountMeta<string> = string,
+  TAccountBuyerRecord extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
@@ -66,6 +68,9 @@ export type AttestInvoiceInstruction<
       TAccountSeal extends string
         ? WritableAccount<TAccountSeal>
         : TAccountSeal,
+      TAccountBuyerRecord extends string
+        ? ReadonlyAccount<TAccountBuyerRecord>
+        : TAccountBuyerRecord,
       ...TRemainingAccounts,
     ]
   >;
@@ -102,17 +107,21 @@ export function getAttestInvoiceInstructionDataCodec(): FixedSizeCodec<
 export type AttestInvoiceInput<
   TAccountBuyer extends InstructionSignerInput = InstructionSignerInput,
   TAccountSeal extends InstructionAccountInput = InstructionAccountInput,
+  TAccountBuyerRecord extends InstructionAccountInput = InstructionAccountInput,
 > = {
   buyer: TAccountBuyer;
   seal: TAccountSeal;
+  /** The signer's verified identity: only a KYB-verified company can attest. */
+  buyerRecord: TAccountBuyerRecord;
 };
 
 export function getAttestInvoiceInstruction<
   TAccountBuyer extends InstructionSignerInput,
   TAccountSeal extends InstructionAccountInput,
+  TAccountBuyerRecord extends InstructionAccountInput,
   TProgramAddress extends Address = typeof SELO_PROGRAM_ADDRESS,
 >(
-  input: AttestInvoiceInput<TAccountBuyer, TAccountSeal>,
+  input: AttestInvoiceInput<TAccountBuyer, TAccountSeal, TAccountBuyerRecord>,
   config?: { programAddress?: TProgramAddress },
 ): AttestInvoiceInstruction<
   TProgramAddress,
@@ -123,6 +132,10 @@ export function getAttestInvoiceInstruction<
   ResolvedInstructionAccountMeta<
     TAccountSeal,
     InstructionAccountInputAddress<TAccountSeal>
+  >,
+  ResolvedInstructionAccountMeta<
+    TAccountBuyerRecord,
+    InstructionAccountInputAddress<TAccountBuyerRecord>
   >
 > {
   // Program address.
@@ -135,6 +148,11 @@ export function getAttestInvoiceInstruction<
   const originalAccounts = {
     buyer: { value: input.buyer ?? null, isSigner: true, isWritable: false },
     seal: { value: input.seal ?? null, isSigner: false, isWritable: true },
+    buyerRecord: {
+      value: input.buyerRecord ?? null,
+      isSigner: false,
+      isWritable: false,
+    },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -145,6 +163,7 @@ export function getAttestInvoiceInstruction<
     accounts: [
       getAccountMeta("buyer", accounts.buyer),
       getAccountMeta("seal", accounts.seal),
+      getAccountMeta("buyerRecord", accounts.buyerRecord),
     ],
     data: getAttestInvoiceInstructionDataEncoder().encode({}),
     programAddress,
@@ -157,6 +176,10 @@ export function getAttestInvoiceInstruction<
     ResolvedInstructionAccountMeta<
       TAccountSeal,
       InstructionAccountInputAddress<TAccountSeal>
+    >,
+    ResolvedInstructionAccountMeta<
+      TAccountBuyerRecord,
+      InstructionAccountInputAddress<TAccountBuyerRecord>
     >
   >);
 }
@@ -169,6 +192,8 @@ export type ParsedAttestInvoiceInstruction<
   accounts: {
     buyer: TAccountMetas[0];
     seal: TAccountMetas[1];
+    /** The signer's verified identity: only a KYB-verified company can attest. */
+    buyerRecord: TAccountMetas[2];
   };
   data: AttestInvoiceInstructionData;
 };
@@ -181,12 +206,12 @@ export function parseAttestInvoiceInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>,
 ): ParsedAttestInvoiceInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 2) {
+  if (instruction.accounts.length < 3) {
     throw new SolanaError(
       SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
       {
         actualAccountMetas: instruction.accounts.length,
-        expectedAccountMetas: 2,
+        expectedAccountMetas: 3,
       },
     );
   }
@@ -198,7 +223,11 @@ export function parseAttestInvoiceInstruction<
   };
   return {
     programAddress: instruction.programAddress,
-    accounts: { buyer: getNextAccount(), seal: getNextAccount() },
+    accounts: {
+      buyer: getNextAccount(),
+      seal: getNextAccount(),
+      buyerRecord: getNextAccount(),
+    },
     data: getAttestInvoiceInstructionDataDecoder().decode(instruction.data),
   };
 }

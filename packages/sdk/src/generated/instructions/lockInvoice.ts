@@ -59,6 +59,7 @@ export type LockInvoiceInstruction<
   TAccountConfig extends string | AccountMeta<string> = string,
   TAccountLender extends string | AccountMeta<string> = string,
   TAccountSeal extends string | AccountMeta<string> = string,
+  TAccountBuyerRecord extends string | AccountMeta<string> = string,
   TAccountFeeMint extends string | AccountMeta<string> = string,
   TAccountLenderToken extends string | AccountMeta<string> = string,
   TAccountTreasury extends string | AccountMeta<string> = string,
@@ -82,6 +83,9 @@ export type LockInvoiceInstruction<
       TAccountSeal extends string
         ? WritableAccount<TAccountSeal>
         : TAccountSeal,
+      TAccountBuyerRecord extends string
+        ? ReadonlyAccount<TAccountBuyerRecord>
+        : TAccountBuyerRecord,
       TAccountFeeMint extends string
         ? ReadonlyAccount<TAccountFeeMint>
         : TAccountFeeMint,
@@ -131,6 +135,7 @@ export type LockInvoiceAsyncInput<
   TAccountConfig extends InstructionAccountInput = InstructionAccountInput,
   TAccountLender extends InstructionAccountInput = InstructionAccountInput,
   TAccountSeal extends InstructionAccountInput = InstructionAccountInput,
+  TAccountBuyerRecord extends InstructionAccountInput = InstructionAccountInput,
   TAccountFeeMint extends InstructionAccountInput = InstructionAccountInput,
   TAccountLenderToken extends InstructionAccountInput = InstructionAccountInput,
   TAccountTreasury extends InstructionAccountInput = InstructionAccountInput,
@@ -141,6 +146,12 @@ export type LockInvoiceAsyncInput<
   config?: TAccountConfig;
   lender?: TAccountLender;
   seal: TAccountSeal;
+  /**
+   * The verified company named on the invoice, derived by the lender from
+   * the buyer tax ID in the invoice data it holds. The lock only goes
+   * through if that company's wallet is the one that attested.
+   */
+  buyerRecord: TAccountBuyerRecord;
   feeMint: TAccountFeeMint;
   lenderToken: TAccountLenderToken;
   treasury: TAccountTreasury;
@@ -152,6 +163,7 @@ export async function getLockInvoiceInstructionAsync<
   TAccountConfig extends InstructionAccountInput,
   TAccountLender extends InstructionAccountInput,
   TAccountSeal extends InstructionAccountInput,
+  TAccountBuyerRecord extends InstructionAccountInput,
   TAccountFeeMint extends InstructionAccountInput,
   TAccountLenderToken extends InstructionAccountInput,
   TAccountTreasury extends InstructionAccountInput,
@@ -163,6 +175,7 @@ export async function getLockInvoiceInstructionAsync<
     TAccountConfig,
     TAccountLender,
     TAccountSeal,
+    TAccountBuyerRecord,
     TAccountFeeMint,
     TAccountLenderToken,
     TAccountTreasury,
@@ -187,6 +200,10 @@ export async function getLockInvoiceInstructionAsync<
     ResolvedInstructionAccountMeta<
       TAccountSeal,
       InstructionAccountInputAddress<TAccountSeal>
+    >,
+    ResolvedInstructionAccountMeta<
+      TAccountBuyerRecord,
+      InstructionAccountInputAddress<TAccountBuyerRecord>
     >,
     ResolvedInstructionAccountMeta<
       TAccountFeeMint,
@@ -222,6 +239,11 @@ export async function getLockInvoiceInstructionAsync<
     config: { value: input.config ?? null, isSigner: false, isWritable: false },
     lender: { value: input.lender ?? null, isSigner: false, isWritable: true },
     seal: { value: input.seal ?? null, isSigner: false, isWritable: true },
+    buyerRecord: {
+      value: input.buyerRecord ?? null,
+      isSigner: false,
+      isWritable: false,
+    },
     feeMint: {
       value: input.feeMint ?? null,
       isSigner: false,
@@ -274,6 +296,7 @@ export async function getLockInvoiceInstructionAsync<
       getAccountMeta("config", accounts.config),
       getAccountMeta("lender", accounts.lender),
       getAccountMeta("seal", accounts.seal),
+      getAccountMeta("buyerRecord", accounts.buyerRecord),
       getAccountMeta("feeMint", accounts.feeMint),
       getAccountMeta("lenderToken", accounts.lenderToken),
       getAccountMeta("treasury", accounts.treasury),
@@ -300,6 +323,10 @@ export async function getLockInvoiceInstructionAsync<
       InstructionAccountInputAddress<TAccountSeal>
     >,
     ResolvedInstructionAccountMeta<
+      TAccountBuyerRecord,
+      InstructionAccountInputAddress<TAccountBuyerRecord>
+    >,
+    ResolvedInstructionAccountMeta<
       TAccountFeeMint,
       InstructionAccountInputAddress<TAccountFeeMint>
     >,
@@ -324,6 +351,7 @@ export type LockInvoiceInput<
   TAccountConfig extends InstructionAccountInput = InstructionAccountInput,
   TAccountLender extends InstructionAccountInput = InstructionAccountInput,
   TAccountSeal extends InstructionAccountInput = InstructionAccountInput,
+  TAccountBuyerRecord extends InstructionAccountInput = InstructionAccountInput,
   TAccountFeeMint extends InstructionAccountInput = InstructionAccountInput,
   TAccountLenderToken extends InstructionAccountInput = InstructionAccountInput,
   TAccountTreasury extends InstructionAccountInput = InstructionAccountInput,
@@ -334,6 +362,12 @@ export type LockInvoiceInput<
   config: TAccountConfig;
   lender: TAccountLender;
   seal: TAccountSeal;
+  /**
+   * The verified company named on the invoice, derived by the lender from
+   * the buyer tax ID in the invoice data it holds. The lock only goes
+   * through if that company's wallet is the one that attested.
+   */
+  buyerRecord: TAccountBuyerRecord;
   feeMint: TAccountFeeMint;
   lenderToken: TAccountLenderToken;
   treasury: TAccountTreasury;
@@ -345,6 +379,7 @@ export function getLockInvoiceInstruction<
   TAccountConfig extends InstructionAccountInput,
   TAccountLender extends InstructionAccountInput,
   TAccountSeal extends InstructionAccountInput,
+  TAccountBuyerRecord extends InstructionAccountInput,
   TAccountFeeMint extends InstructionAccountInput,
   TAccountLenderToken extends InstructionAccountInput,
   TAccountTreasury extends InstructionAccountInput,
@@ -356,6 +391,7 @@ export function getLockInvoiceInstruction<
     TAccountConfig,
     TAccountLender,
     TAccountSeal,
+    TAccountBuyerRecord,
     TAccountFeeMint,
     TAccountLenderToken,
     TAccountTreasury,
@@ -379,6 +415,10 @@ export function getLockInvoiceInstruction<
   ResolvedInstructionAccountMeta<
     TAccountSeal,
     InstructionAccountInputAddress<TAccountSeal>
+  >,
+  ResolvedInstructionAccountMeta<
+    TAccountBuyerRecord,
+    InstructionAccountInputAddress<TAccountBuyerRecord>
   >,
   ResolvedInstructionAccountMeta<
     TAccountFeeMint,
@@ -413,6 +453,11 @@ export function getLockInvoiceInstruction<
     config: { value: input.config ?? null, isSigner: false, isWritable: false },
     lender: { value: input.lender ?? null, isSigner: false, isWritable: true },
     seal: { value: input.seal ?? null, isSigner: false, isWritable: true },
+    buyerRecord: {
+      value: input.buyerRecord ?? null,
+      isSigner: false,
+      isWritable: false,
+    },
     feeMint: {
       value: input.feeMint ?? null,
       isSigner: false,
@@ -451,6 +496,7 @@ export function getLockInvoiceInstruction<
       getAccountMeta("config", accounts.config),
       getAccountMeta("lender", accounts.lender),
       getAccountMeta("seal", accounts.seal),
+      getAccountMeta("buyerRecord", accounts.buyerRecord),
       getAccountMeta("feeMint", accounts.feeMint),
       getAccountMeta("lenderToken", accounts.lenderToken),
       getAccountMeta("treasury", accounts.treasury),
@@ -475,6 +521,10 @@ export function getLockInvoiceInstruction<
     ResolvedInstructionAccountMeta<
       TAccountSeal,
       InstructionAccountInputAddress<TAccountSeal>
+    >,
+    ResolvedInstructionAccountMeta<
+      TAccountBuyerRecord,
+      InstructionAccountInputAddress<TAccountBuyerRecord>
     >,
     ResolvedInstructionAccountMeta<
       TAccountFeeMint,
@@ -505,10 +555,16 @@ export type ParsedLockInvoiceInstruction<
     config: TAccountMetas[1];
     lender: TAccountMetas[2];
     seal: TAccountMetas[3];
-    feeMint: TAccountMetas[4];
-    lenderToken: TAccountMetas[5];
-    treasury: TAccountMetas[6];
-    tokenProgram: TAccountMetas[7];
+    /**
+     * The verified company named on the invoice, derived by the lender from
+     * the buyer tax ID in the invoice data it holds. The lock only goes
+     * through if that company's wallet is the one that attested.
+     */
+    buyerRecord: TAccountMetas[4];
+    feeMint: TAccountMetas[5];
+    lenderToken: TAccountMetas[6];
+    treasury: TAccountMetas[7];
+    tokenProgram: TAccountMetas[8];
   };
   data: LockInvoiceInstructionData;
 };
@@ -521,12 +577,12 @@ export function parseLockInvoiceInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>,
 ): ParsedLockInvoiceInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 8) {
+  if (instruction.accounts.length < 9) {
     throw new SolanaError(
       SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
       {
         actualAccountMetas: instruction.accounts.length,
-        expectedAccountMetas: 8,
+        expectedAccountMetas: 9,
       },
     );
   }
@@ -543,6 +599,7 @@ export function parseLockInvoiceInstruction<
       config: getNextAccount(),
       lender: getNextAccount(),
       seal: getNextAccount(),
+      buyerRecord: getNextAccount(),
       feeMint: getNextAccount(),
       lenderToken: getNextAccount(),
       treasury: getNextAccount(),

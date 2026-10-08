@@ -12,6 +12,14 @@ pub struct AttestInvoice<'info> {
         has_one = buyer,
     )]
     pub seal: Account<'info, Seal>,
+    /// The signer's verified identity: only a KYB-verified company can attest.
+    #[account(
+        seeds = [BUYER_SEED, buyer_record.tax_id_hash.as_ref()],
+        bump = buyer_record.bump,
+        constraint = buyer_record.authority == buyer.key() @ SeloError::BuyerNotVerified,
+        constraint = buyer_record.active @ SeloError::BuyerNotVerified,
+    )]
+    pub buyer_record: Account<'info, Buyer>,
 }
 
 pub fn handle_attest_invoice(ctx: Context<AttestInvoice>) -> Result<()> {

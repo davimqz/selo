@@ -7,25 +7,33 @@
  *      USDC-dev account is the treasury; lock fee = LOCK_FEE whole tokens.
  *   3. Registers "Lender A" and "Lender B" (re-activates them if inactive).
  *   4. Tops both lenders up to 1,000 USDC-dev.
- *   5. Tops every demo wallet (lenders, supplier, buyer) up to 0.1 SOL.
+ *   5. Verifies the buyer wallet as the company with BUYER_TAX_ID (the admin
+ *      plays the KYB verifier on devnet; re-activates it if revoked).
+ *   6. Tops every demo wallet (lenders, supplier, buyer) up to 0.1 SOL.
  *
  * Usage:
  *   LENDER_A=<wallet> LENDER_B=<wallet> SUPPLIER=<wallet> BUYER=<wallet> \
  *     pnpm seed-demo
  *
- * Env: RPC_URL, WALLET_PATH (payer = upgrade authority), LOCK_FEE (default 1).
+ * Env: RPC_URL, WALLET_PATH (payer = upgrade authority), LOCK_FEE (default 1),
+ * BUYER_TAX_ID (default: the app's sample, "US 94-1081436"), BUYER_NAME.
  */
 import { type Address, address, lamports } from "@solana/kit";
 import { getTransferSolInstruction } from "@solana-program/system";
 import {
+  fetchMaybeBuyer,
   fetchMaybeConfig,
   fetchMaybeLender,
+  findBuyerRecordByTaxId,
   findConfigPda,
   findLenderPda,
   findProgramDataAddress,
   getInitializeInstructionAsync,
+  getRegisterBuyerInstructionAsync,
   getRegisterLenderInstructionAsync,
+  getSetBuyerActiveInstructionAsync,
   getSetLenderActiveInstructionAsync,
+  partyIdHash,
 } from "@selo/sdk";
 import {
   cluster,
@@ -60,10 +68,22 @@ export interface DemoWallets {
   buyer?: Address;
 }
 
+/** The company the buyer wallet is verified as. */
+export interface BuyerIdentity {
+  taxId: string;
+  name: string;
+}
+
+const DEFAULT_BUYER: BuyerIdentity = {
+  taxId: process.env.BUYER_TAX_ID?.trim() || "US 94-1081436",
+  name: process.env.BUYER_NAME?.trim() || "Demo Buyer Inc.",
+};
+
 export async function seedDemo(
   { lenderA, lenderB, supplier, buyer }: DemoWallets,
   names: [string, string] = ["Lender A", "Lender B"],
   saveToState = true,
+  buyerIdentity: BuyerIdentity = DEFAULT_BUYER,
 ) {
   const admin = await loadKeypair();
   await fundPayerOnLocalnet(admin);
@@ -124,6 +144,42 @@ export async function seedDemo(
     }
     const minted = await topUpTokens(admin, feeMint, wallet, LENDER_TOKENS);
     if (minted > 0n) console.log(`  + ${minted / UNIT} USDC-dev`);
+  }
+
+  // verified buyer (KYB stand-in: the admin vouches for the wallet)
+  if (buyer) {
+    const pda = await findBuyerRecordByTaxId(buyerIdentity.taxId);
+    const record = await fetchMaybeBuyer(rpc, pda);
+    if (!record.exists) {
+      await send(admin, [
+        await getRegisterBuyerInstructionAsync({
+          admin,
+          buyerAuthority: buyer,
+          taxIdHash: partyIdHash(buyerIdentity.taxId),
+          name: buyerIdentity.name,
+        }),
+      ]);
+      console.log(
+        `Verified ${buyerIdentity.name} (${buyerIdentity.taxId}) as ${buyer}`,
+      );
+    } else if (record.data.authority !== buyer) {
+      throw new Error(
+        `Tax ID ${buyerIdentity.taxId} is already verified for ` +
+          `${record.data.authority}, not ${buyer}. Use another BUYER_TAX_ID.`,
+      );
+    } else {
+      if (!record.data.active) {
+        await send(admin, [
+          await getSetBuyerActiveInstructionAsync({
+            admin,
+            buyerRecord: pda,
+            active: true,
+          }),
+        ]);
+        console.log(`Re-activated buyer ${record.data.name}`);
+      }
+      console.log(`${record.data.name} already verified (${buyer})`);
+    }
   }
 
   // SOL for transaction fees and seal rent

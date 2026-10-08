@@ -12,9 +12,12 @@ import {
 import { checkInvoice, toInvoiceHash } from "./check";
 import {
   SELO_ERROR__ALREADY_ATTESTED,
+  SELO_ERROR__BUYER_MISMATCH,
+  SELO_ERROR__BUYER_NOT_VERIFIED,
   SELO_ERROR__DUE_DATE_IN_PAST,
   SELO_ERROR__INVALID_AMOUNT,
   SELO_ERROR__INVALID_BUYER,
+  SELO_ERROR__INVALID_BUYER_NAME,
   SELO_ERROR__INVALID_CURRENCY,
   SELO_ERROR__INVALID_FEE_MINT,
   SELO_ERROR__INVALID_LENDER_NAME,
@@ -58,6 +61,12 @@ const MESSAGES: Record<number, string> = {
   [SELO_ERROR__LENDER_INACTIVE]: "This lender is not active in Selo.",
   [SELO_ERROR__NOT_LOCK_HOLDER]:
     "Only the lender that financed this invoice can release it.",
+  [SELO_ERROR__INVALID_BUYER_NAME]:
+    "Buyer name must be 1 to 32 characters long.",
+  [SELO_ERROR__BUYER_NOT_VERIFIED]:
+    "The buyer's identity is not verified in Selo. It cannot confirm or be financed.",
+  [SELO_ERROR__BUYER_MISMATCH]:
+    "The wallet that confirmed this invoice is not the verified company named on it. Do not finance.",
 };
 
 /** Anchor framework and SPL Token errors a user can hit through the app. */
@@ -69,7 +78,7 @@ const FRAMEWORK_MESSAGES: Record<number, string> = {
   2006: "The invoice account does not match the invoice data.",
   2014: "Wrong token for the lock fee.",
   2015: "The token account does not belong to this wallet.",
-  3012: "This lender is not registered in Selo.",
+  3012: "Not registered in Selo: this lender, or the buyer on the invoice, is not verified.",
 };
 
 /** The custom program error code inside a (possibly nested) Kit error. */

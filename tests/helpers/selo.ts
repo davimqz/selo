@@ -40,6 +40,7 @@ import {
   decodeConfig,
   decodeLender,
   decodeSeal,
+  findBuyerRecordByTaxId,
   findConfigPda,
   findLenderPda,
   findProgramDataAddress,
@@ -48,8 +49,10 @@ import {
   getInitializeInstructionAsync,
   getLockInvoiceInstructionAsync,
   getReleaseInvoiceInstruction,
+  getRegisterBuyerInstructionAsync,
   getRegisterLenderInstructionAsync,
   getSealInvoiceInstructionAsync,
+  partyIdHash,
   sealArgs,
 } from "@selo/sdk";
 
@@ -73,6 +76,8 @@ export interface Ctx {
   feeMint: Address;
   /** A second 6-decimal mint, for wrong-mint failure tests. */
   otherMint: Address;
+  /** The `Buyer` account for INVOICE's buyer tax ID (registered by setupRegistry). */
+  buyerRecord: Address;
   ata: (owner: Address, mint?: Address) => Promise<Address>;
 }
 
@@ -141,6 +146,7 @@ export const AnchorErr = {
   ConstraintTokenMint: 2014,
   ConstraintTokenOwner: 2015,
   AccountNotInitialized: 3012,
+  AccountDiscriminatorMismatch: 3002,
 } as const;
 
 /** Decodes `Program data:` event logs whose discriminator matches `parse`. */
@@ -264,6 +270,7 @@ export async function setup(): Promise<Ctx> {
     stranger,
     feeMint,
     otherMint,
+    buyerRecord: await findBuyerRecordByTaxId(INVOICE.buyerTaxId),
     ata: async (owner, m = feeMint) =>
       (
         await findAssociatedTokenPda({
@@ -342,13 +349,38 @@ export async function registerLender(
   return (await findLenderPda({ lenderAuthority: authority }))[0];
 }
 
-/** A registry with lender A and lender B registered. */
+/** Verifies `authority` as the company with this tax ID (admin as KYB verifier). */
+export async function registerBuyer(
+  ctx: Ctx,
+  authority: Address,
+  taxId: string = INVOICE.buyerTaxId,
+  name = "Buyer Co",
+) {
+  await sendOk(
+    ctx.svm,
+    [
+      await getRegisterBuyerInstructionAsync({
+        admin: ctx.admin,
+        buyerAuthority: authority,
+        taxIdHash: partyIdHash(taxId),
+        name,
+      }),
+    ],
+    ctx.admin,
+  );
+  return findBuyerRecordByTaxId(taxId);
+}
+
 export const LENDER_BALANCE = 100n * USDC;
 
-/** A registry with lenders A and B registered and holding USDC-dev. */
+/**
+ * A registry with lenders A and B registered and holding USDC-dev, and the
+ * buyer verified as the company on INVOICE.
+ */
 export async function setupRegistry() {
   const ctx = await setup();
   const { treasury } = await initRegistry(ctx);
+  await registerBuyer(ctx, ctx.buyer.address);
   const lenderA = await registerLender(ctx, ctx.lenderA.address, "Lender A");
   const lenderB = await registerLender(ctx, ctx.lenderB.address, "Lender B");
   await mintTo(ctx, ctx.lenderA.address, LENDER_BALANCE);
@@ -366,8 +398,13 @@ export async function setupAttested(invoice: Invoice = INVOICE) {
   return { ...reg, seal };
 }
 
-export function attestIx(ctx: Ctx, seal: Address, buyer = ctx.buyer) {
-  return getAttestInvoiceInstruction({ buyer, seal });
+export function attestIx(
+  ctx: Ctx,
+  seal: Address,
+  buyer = ctx.buyer,
+  buyerRecord = ctx.buyerRecord,
+) {
+  return getAttestInvoiceInstruction({ buyer, seal, buyerRecord });
 }
 
 export async function lockIx(
@@ -380,6 +417,7 @@ export async function lockIx(
     feeMint: Address;
     lenderToken: Address;
     treasury: Address;
+    buyerRecord: Address;
   }> = {},
 ) {
   const feeMint = overrides.feeMint ?? ctx.feeMint;
@@ -387,6 +425,7 @@ export async function lockIx(
     lenderAuthority: lender,
     lender: overrides.lender,
     seal,
+    buyerRecord: overrides.buyerRecord ?? ctx.buyerRecord,
     feeMint,
     lenderToken:
       overrides.lenderToken ?? (await ctx.ata(lender.address, feeMint)),

@@ -1,6 +1,14 @@
 use anchor_lang::prelude::*;
 
 #[event]
+pub struct BuyerVerified {
+    pub buyer: Pubkey,
+    pub authority: Pubkey,
+    pub tax_id_hash: [u8; 32],
+    pub timestamp: i64,
+}
+
+#[event]
 pub struct InvoiceSealed {
     pub seal: Pubkey,
     pub invoice_hash: [u8; 32],

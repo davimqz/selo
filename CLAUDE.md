@@ -49,6 +49,7 @@ Todas as PDAs guardam o `bump`. Valores em `u64` (unidades mínimas), cálculos 
 |---|---|---|
 | `Config` | `["config"]` | `admin`, `treasury`, `fee_mint`, `lock_fee` (valor fixo por travamento), `paused`, `bump` |
 | `Lender` | `["lender", lender_pubkey]` | `name` (até 32 bytes), `active`, `locks_count` |
+| `Buyer` | `["buyer", tax_id_hash]` | `authority` (carteira ou vault multisig), `tax_id_hash = sha256("v1\|party\|" + id fiscal canônico)`, `name`, `active`, `verified_at` |
 | `Seal` | `["seal", invoice_hash]` | `invoice_hash`, `supplier`, `buyer`, `face_amount`, `currency` (3 bytes ISO 4217), `due_ts`, `status`, `buyer_attested`, `lender`, `locked_at`, `created_at`, `bump` |
 
 `status`: `Sealed → Locked → Released`, ou `Sealed → Cancelled`. `buyer_attested` é uma flag independente que só o comprador liga. Nenhuma outra transição é válida.
@@ -74,9 +75,10 @@ v1|<id fiscal do comprador, só letras e dígitos, maiúsculas>|<id fiscal do fo
 |---|---|---|---|
 | 1 | `initialize` | admin | `lock_fee` dentro de limite; mint com 6 decimais |
 | 2 | `register_lender(name)` / `set_lender_active` | admin | nome não vazio |
+| 2b | `register_buyer(tax_id_hash, name)` / `set_buyer_active` | admin (verificador KYB na devnet) | nome não vazio; um `Buyer` por id fiscal (a PDA é a unicidade) |
 | 3 | `seal_invoice(hash, buyer, face, currency, due_ts)` | fornecedor | `init` da PDA (**a duplicata falha aqui**); `face > 0`; `due_ts` no futuro; não pausado |
-| 4 | `attest_invoice` | comprador | `Seal.buyer == signer`; estado `Sealed` ou `Locked` |
-| 5 | `lock_invoice` | financiador | financiador registrado e ativo; estado `Sealed`; **`buyer_attested == true`**; cobra `lock_fee` em `fee_mint` para `treasury`; grava `lender` e `locked_at` |
+| 4 | `attest_invoice` | comprador | `Seal.buyer == signer`; estado `Sealed` ou `Locked`; **`Buyer` do signer ativo** |
+| 5 | `lock_invoice` | financiador | financiador registrado e ativo; estado `Sealed`; **`buyer_attested == true`**; **`Buyer` derivado do id fiscal da fatura tem `authority == Seal.buyer` e está ativo**; cobra `lock_fee` em `fee_mint` para `treasury`; grava `lender` e `locked_at` |
 | 6 | `release_invoice` | o mesmo financiador | estado `Locked`; `Seal.lender == signer` (marca a fatura como paga/encerrada) |
 | 7 | `cancel_seal` | fornecedor | só em `Sealed` |
 | 8 | `set_paused` | admin | — |
@@ -128,6 +130,9 @@ Faixa "Devnet — tokens de teste" em todas as telas. Nenhum erro cru do Anchor 
 6. Taxa de travamento chega à `treasury` com o valor exato.
 7. Financiador inativo não trava; pausa bloqueia selar e travar.
 8. Vetores do hash canônico em `packages/sdk`.
+9. Comprador não verificado ou revogado não atesta; travar falha se quem atestou não é a empresa verificada da fatura (`BuyerMismatch`).
+
+**Invariante:** contas `Seal` nunca são fechadas. Fechar um selo `Released` ou `Cancelled` para recuperar o aluguel apagaria a PDA e permitiria selar e financiar a mesma fatura de novo.
 
 ## 12. Estrutura de pastas
 

@@ -34,9 +34,12 @@ import {
   type SelfPlanAndSendFunctions,
 } from "@solana/program-client-core";
 import {
+  getBuyerCodec,
   getConfigCodec,
   getLenderCodec,
   getSealCodec,
+  type Buyer,
+  type BuyerArgs,
   type Config,
   type ConfigArgs,
   type Lender,
@@ -49,18 +52,22 @@ import {
   getCancelSealInstruction,
   getInitializeInstructionAsync,
   getLockInvoiceInstructionAsync,
+  getRegisterBuyerInstructionAsync,
   getRegisterLenderInstructionAsync,
   getReleaseInvoiceInstruction,
   getSealInvoiceInstructionAsync,
+  getSetBuyerActiveInstructionAsync,
   getSetLenderActiveInstructionAsync,
   getSetPausedInstructionAsync,
   parseAttestInvoiceInstruction,
   parseCancelSealInstruction,
   parseInitializeInstruction,
   parseLockInvoiceInstruction,
+  parseRegisterBuyerInstruction,
   parseRegisterLenderInstruction,
   parseReleaseInvoiceInstruction,
   parseSealInvoiceInstruction,
+  parseSetBuyerActiveInstruction,
   parseSetLenderActiveInstruction,
   parseSetPausedInstruction,
   type AttestInvoiceInput,
@@ -71,23 +78,33 @@ import {
   type ParsedCancelSealInstruction,
   type ParsedInitializeInstruction,
   type ParsedLockInvoiceInstruction,
+  type ParsedRegisterBuyerInstruction,
   type ParsedRegisterLenderInstruction,
   type ParsedReleaseInvoiceInstruction,
   type ParsedSealInvoiceInstruction,
+  type ParsedSetBuyerActiveInstruction,
   type ParsedSetLenderActiveInstruction,
   type ParsedSetPausedInstruction,
+  type RegisterBuyerAsyncInput,
   type RegisterLenderAsyncInput,
   type ReleaseInvoiceInput,
   type SealInvoiceAsyncInput,
+  type SetBuyerActiveAsyncInput,
   type SetLenderActiveAsyncInput,
   type SetPausedAsyncInput,
 } from "../instructions";
-import { findConfigPda, findLenderPda, findSealPda } from "../pdas";
+import {
+  findBuyerRecordPda,
+  findConfigPda,
+  findLenderPda,
+  findSealPda,
+} from "../pdas";
 
 export const SELO_PROGRAM_ADDRESS =
   "4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio" as Address<"4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio">;
 
 export enum SeloAccount {
+  Buyer,
   Config,
   Lender,
   Seal,
@@ -97,6 +114,17 @@ export function identifySeloAccount(
   account: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
 ): SeloAccount {
   const data = "data" in account ? account.data : account;
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([212, 193, 28, 181, 26, 219, 85, 174]),
+      ),
+      0,
+    )
+  ) {
+    return SeloAccount.Buyer;
+  }
   if (
     containsBytes(
       data,
@@ -137,6 +165,7 @@ export function identifySeloAccount(
 }
 
 export enum SeloEvent {
+  BuyerVerified,
   InvoiceAttested,
   InvoiceCancelled,
   InvoiceLocked,
@@ -148,6 +177,17 @@ export function identifySeloEvent(
   event: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
 ): SeloEvent {
   const data = "data" in event ? event.data : event;
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([125, 121, 188, 222, 181, 186, 47, 216]),
+      ),
+      0,
+    )
+  ) {
+    return SeloEvent.BuyerVerified;
+  }
   if (
     containsBytes(
       data,
@@ -213,9 +253,11 @@ export enum SeloInstruction {
   CancelSeal,
   Initialize,
   LockInvoice,
+  RegisterBuyer,
   RegisterLender,
   ReleaseInvoice,
   SealInvoice,
+  SetBuyerActive,
   SetLenderActive,
   SetPaused,
 }
@@ -272,6 +314,17 @@ export function identifySeloInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([144, 92, 137, 46, 209, 220, 27, 164]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.RegisterBuyer;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([106, 218, 85, 233, 227, 161, 105, 68]),
       ),
       0,
@@ -300,6 +353,17 @@ export function identifySeloInstruction(
     )
   ) {
     return SeloInstruction.SealInvoice;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([121, 63, 143, 126, 139, 93, 1, 49]),
+      ),
+      0,
+    )
+  ) {
+    return SeloInstruction.SetBuyerActive;
   }
   if (
     containsBytes(
@@ -345,6 +409,9 @@ export type ParsedSeloInstruction<
       instructionType: SeloInstruction.LockInvoice;
     } & ParsedLockInvoiceInstruction<TProgram>)
   | ({
+      instructionType: SeloInstruction.RegisterBuyer;
+    } & ParsedRegisterBuyerInstruction<TProgram>)
+  | ({
       instructionType: SeloInstruction.RegisterLender;
     } & ParsedRegisterLenderInstruction<TProgram>)
   | ({
@@ -353,6 +420,9 @@ export type ParsedSeloInstruction<
   | ({
       instructionType: SeloInstruction.SealInvoice;
     } & ParsedSealInvoiceInstruction<TProgram>)
+  | ({
+      instructionType: SeloInstruction.SetBuyerActive;
+    } & ParsedSetBuyerActiveInstruction<TProgram>)
   | ({
       instructionType: SeloInstruction.SetLenderActive;
     } & ParsedSetLenderActiveInstruction<TProgram>)
@@ -393,6 +463,13 @@ export function parseSeloInstruction<TProgram extends string>(
         ...parseLockInvoiceInstruction(instruction),
       };
     }
+    case SeloInstruction.RegisterBuyer: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.RegisterBuyer,
+        ...parseRegisterBuyerInstruction(instruction),
+      };
+    }
     case SeloInstruction.RegisterLender: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -412,6 +489,13 @@ export function parseSeloInstruction<TProgram extends string>(
       return {
         instructionType: SeloInstruction.SealInvoice,
         ...parseSealInvoiceInstruction(instruction),
+      };
+    }
+    case SeloInstruction.SetBuyerActive: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: SeloInstruction.SetBuyerActive,
+        ...parseSetBuyerActiveInstruction(instruction),
       };
     }
     case SeloInstruction.SetLenderActive: {
@@ -446,6 +530,8 @@ export type SeloPlugin = {
 };
 
 export type SeloPluginAccounts = {
+  buyer: ReturnType<typeof getBuyerCodec> &
+    SelfFetchFunctions<BuyerArgs, Buyer>;
   config: ReturnType<typeof getConfigCodec> &
     SelfFetchFunctions<ConfigArgs, Config>;
   lender: ReturnType<typeof getLenderCodec> &
@@ -469,6 +555,10 @@ export type SeloPluginInstructions = {
     input: LockInvoiceAsyncInput,
   ) => ReturnType<typeof getLockInvoiceInstructionAsync> &
     SelfPlanAndSendFunctions;
+  registerBuyer: (
+    input: RegisterBuyerAsyncInput,
+  ) => ReturnType<typeof getRegisterBuyerInstructionAsync> &
+    SelfPlanAndSendFunctions;
   registerLender: (
     input: RegisterLenderAsyncInput,
   ) => ReturnType<typeof getRegisterLenderInstructionAsync> &
@@ -480,6 +570,10 @@ export type SeloPluginInstructions = {
   sealInvoice: (
     input: SealInvoiceAsyncInput,
   ) => ReturnType<typeof getSealInvoiceInstructionAsync> &
+    SelfPlanAndSendFunctions;
+  setBuyerActive: (
+    input: SetBuyerActiveAsyncInput,
+  ) => ReturnType<typeof getSetBuyerActiveInstructionAsync> &
     SelfPlanAndSendFunctions;
   setLenderActive: (
     input: SetLenderActiveAsyncInput,
@@ -494,6 +588,7 @@ export type SeloPluginInstructions = {
 export type SeloPluginPdas = {
   config: typeof findConfigPda;
   lender: typeof findLenderPda;
+  buyerRecord: typeof findBuyerRecordPda;
   seal: typeof findSealPda;
 };
 
@@ -510,6 +605,7 @@ export function seloProgram() {
     return extendClient(client, {
       selo: <SeloPlugin>{
         accounts: {
+          buyer: addSelfFetchFunctions(client, getBuyerCodec()),
           config: addSelfFetchFunctions(client, getConfigCodec()),
           lender: addSelfFetchFunctions(client, getLenderCodec()),
           seal: addSelfFetchFunctions(client, getSealCodec()),
@@ -535,6 +631,11 @@ export function seloProgram() {
               client,
               getLockInvoiceInstructionAsync(input),
             ),
+          registerBuyer: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getRegisterBuyerInstructionAsync(input),
+            ),
           registerLender: (input) =>
             addSelfPlanAndSendFunctions(
               client,
@@ -550,6 +651,11 @@ export function seloProgram() {
               client,
               getSealInvoiceInstructionAsync(input),
             ),
+          setBuyerActive: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getSetBuyerActiveInstructionAsync(input),
+            ),
           setLenderActive: (input) =>
             addSelfPlanAndSendFunctions(
               client,
@@ -564,6 +670,7 @@ export function seloProgram() {
         pdas: {
           config: findConfigPda,
           lender: findLenderPda,
+          buyerRecord: findBuyerRecordPda,
           seal: findSealPda,
         },
         identifyAccount: identifySeloAccount,

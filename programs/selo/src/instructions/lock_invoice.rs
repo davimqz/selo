@@ -25,6 +25,14 @@ pub struct LockInvoice<'info> {
         bump = seal.bump,
     )]
     pub seal: Account<'info, Seal>,
+    /// The verified company named on the invoice, derived by the lender from
+    /// the buyer tax ID in the invoice data it holds. The lock only goes
+    /// through if that company's wallet is the one that attested.
+    #[account(
+        seeds = [BUYER_SEED, buyer_record.tax_id_hash.as_ref()],
+        bump = buyer_record.bump,
+    )]
+    pub buyer_record: Account<'info, Buyer>,
     pub fee_mint: Account<'info, Mint>,
     #[account(
         mut,
@@ -51,6 +59,12 @@ pub fn handle_lock_invoice(ctx: Context<LockInvoice>) -> Result<()> {
     }
     require!(seal.status == SealStatus::Sealed, SeloError::InvalidStatus);
     require!(seal.buyer_attested, SeloError::NotAttested);
+    let buyer_record = &ctx.accounts.buyer_record;
+    require!(
+        buyer_record.authority == seal.buyer,
+        SeloError::BuyerMismatch
+    );
+    require!(buyer_record.active, SeloError::BuyerNotVerified);
 
     let fee = ctx.accounts.config.lock_fee;
     if fee > 0 {

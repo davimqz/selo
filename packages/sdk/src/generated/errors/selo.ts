@@ -48,12 +48,21 @@ export const SELO_ERROR__ALREADY_ATTESTED = 0x177e; // 6014
 export const SELO_ERROR__LENDER_INACTIVE = 0x177f; // 6015
 /** NotLockHolder: Only the lender that locked the invoice can release it */
 export const SELO_ERROR__NOT_LOCK_HOLDER = 0x1780; // 6016
+/** InvalidBuyerName: Buyer name must be 1 to 32 bytes and not blank */
+export const SELO_ERROR__INVALID_BUYER_NAME = 0x1781; // 6017
+/** BuyerNotVerified: The buyer's identity is not verified in the registry */
+export const SELO_ERROR__BUYER_NOT_VERIFIED = 0x1782; // 6018
+/** BuyerMismatch: The invoice's buyer is not the verified company on the invoice */
+export const SELO_ERROR__BUYER_MISMATCH = 0x1783; // 6019
 
 export type SeloError =
   | typeof SELO_ERROR__ALREADY_ATTESTED
+  | typeof SELO_ERROR__BUYER_MISMATCH
+  | typeof SELO_ERROR__BUYER_NOT_VERIFIED
   | typeof SELO_ERROR__DUE_DATE_IN_PAST
   | typeof SELO_ERROR__INVALID_AMOUNT
   | typeof SELO_ERROR__INVALID_BUYER
+  | typeof SELO_ERROR__INVALID_BUYER_NAME
   | typeof SELO_ERROR__INVALID_CURRENCY
   | typeof SELO_ERROR__INVALID_FEE_MINT
   | typeof SELO_ERROR__INVALID_LENDER_NAME
@@ -72,9 +81,12 @@ let seloErrorMessages: Record<SeloError, string> | undefined;
 if (process.env["NODE_ENV"] !== "production") {
   seloErrorMessages = {
     [SELO_ERROR__ALREADY_ATTESTED]: `The buyer has already attested this invoice`,
+    [SELO_ERROR__BUYER_MISMATCH]: `The invoice's buyer is not the verified company on the invoice`,
+    [SELO_ERROR__BUYER_NOT_VERIFIED]: `The buyer's identity is not verified in the registry`,
     [SELO_ERROR__DUE_DATE_IN_PAST]: `Due date must be in the future`,
     [SELO_ERROR__INVALID_AMOUNT]: `Amount must be greater than zero`,
     [SELO_ERROR__INVALID_BUYER]: `Buyer must be a different, non-default account`,
+    [SELO_ERROR__INVALID_BUYER_NAME]: `Buyer name must be 1 to 32 bytes and not blank`,
     [SELO_ERROR__INVALID_CURRENCY]: `Currency must be a 3-letter ISO 4217 code`,
     [SELO_ERROR__INVALID_FEE_MINT]: `Fee mint must have 6 decimals`,
     [SELO_ERROR__INVALID_LENDER_NAME]: `Lender name must be 1 to 32 bytes and not blank`,
