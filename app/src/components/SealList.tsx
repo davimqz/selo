@@ -19,6 +19,13 @@ const STATUS_TEXT: Record<SealStatus, string> = {
   [SealStatus.Cancelled]: "Cancelled",
 };
 
+const STATUS_TONE: Record<SealStatus, string> = {
+  [SealStatus.Sealed]: "badge-free",
+  [SealStatus.Locked]: "badge-locked",
+  [SealStatus.Released]: "badge-muted",
+  [SealStatus.Cancelled]: "badge-muted",
+};
+
 export function SealList({
   by,
   refresh = 0,
@@ -62,20 +69,27 @@ export function SealList({
   }
   if (!seals) return <p className="text-sm text-muted">Loading…</p>;
   if (seals.length === 0) {
-    return <p className="text-sm text-muted">No invoices yet.</p>;
+    return (
+      <p className="card text-sm text-muted">
+        No invoices yet.{" "}
+        {"supplier" in by
+          ? "Seal one above and it shows up here."
+          : "Invoices a supplier seals against this wallet show up here."}
+      </p>
+    );
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="card overflow-x-auto p-0">
       <table className="w-full text-left text-sm">
-        <thead className="text-xs text-muted">
+        <thead className="bg-wash text-xs text-muted">
           <tr className="border-b border-line">
-            <th className="py-2 pr-4 font-normal">Invoice hash</th>
-            <th className="py-2 pr-4 font-normal">Amount</th>
-            <th className="py-2 pr-4 font-normal">Due</th>
-            <th className="py-2 pr-4 font-normal">Status</th>
-            <th className="py-2 pr-4 font-normal">Attested</th>
-            {action && <th className="py-2 font-normal" />}
+            <th className="py-2.5 pr-4 font-medium first:pl-6">Invoice hash</th>
+            <th className="py-2.5 pr-4 font-medium first:pl-6">Amount</th>
+            <th className="py-2.5 pr-4 font-medium first:pl-6">Due</th>
+            <th className="py-2.5 pr-4 font-medium first:pl-6">Status</th>
+            <th className="py-2.5 pr-4 font-medium first:pl-6">Attested</th>
+            {action && <th className="py-2.5 pr-6" />}
           </tr>
         </thead>
         <tbody>
@@ -85,8 +99,11 @@ export function SealList({
             );
             const hash = toHex(new Uint8Array(s.data.invoiceHash));
             return (
-              <tr key={s.address} className="border-b border-line">
-                <td className="py-2 pr-4 font-mono text-xs">
+              <tr
+                key={s.address}
+                className="border-b border-line last:border-0"
+              >
+                <td className="py-3 pr-4 pl-6 font-mono text-xs">
                   <a
                     href={explorerAddress(s.address)}
                     target="_blank"
@@ -98,24 +115,30 @@ export function SealList({
                   </a>
                   <button
                     type="button"
-                    className="ml-2 text-muted hover:text-ink"
+                    className="ml-2 font-sans font-medium text-brand hover:underline"
                     title="Copy the full hash"
                     onClick={() => navigator.clipboard?.writeText(hash)}
                   >
                     copy
                   </button>
                 </td>
-                <td className="py-2 pr-4">
+                <td className="py-3 pr-4">
                   {formatAmount(s.data.faceAmount, currency)}
                 </td>
-                <td className="py-2 pr-4">
+                <td className="py-3 pr-4">
                   {formatDate(new Date(Number(s.data.dueTs) * 1000))}
                 </td>
-                <td className="py-2 pr-4">{STATUS_TEXT[s.data.status]}</td>
-                <td className="py-2 pr-4">
+                <td className="py-3 pr-4">
+                  <span className={`badge ${STATUS_TONE[s.data.status]}`}>
+                    {STATUS_TEXT[s.data.status]}
+                  </span>
+                </td>
+                <td className="py-3 pr-4">
                   {s.data.buyerAttested ? "Yes" : "No"}
                 </td>
-                {action && <td className="py-2">{action(s, load)}</td>}
+                {action && (
+                  <td className="py-3 pr-6 text-right">{action(s, load)}</td>
+                )}
               </tr>
             );
           })}

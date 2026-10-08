@@ -49,13 +49,13 @@ export function InvoiceFields({
       <div className="flex flex-wrap items-center gap-3 text-xs">
         <button
           type="button"
-          className="text-muted underline underline-offset-2 hover:text-ink"
+          className="text-brand font-medium hover:underline"
           onClick={() => onChange(exampleForm())}
         >
           Fill the example invoice
         </button>
         {!parsed.ok && parsed.error && (
-          <span className="text-stamp">{parsed.error}</span>
+          <span className="text-stamp font-medium">{parsed.error}</span>
         )}
       </div>
       {parsed.ok && (
@@ -73,13 +73,21 @@ export function HashPreview({
   hash: string;
 }) {
   return (
-    <div className="rounded-md bg-wash p-3 font-mono text-xs leading-relaxed">
-      <div className="text-muted">
-        canonical form (computed in your browser)
+    <div className="overflow-hidden rounded-xl bg-[var(--gray-950)] text-xs leading-relaxed">
+      <div className="flex items-center justify-between border-b border-white/10 px-4 py-2 text-[#a8a9b4]">
+        <span>Computed in your browser</span>
+        <span className="text-[#8f7aff]">only the hash goes on-chain</span>
       </div>
-      <div className="break-all">{canonical}</div>
-      <div className="mt-2 text-muted">invoice hash = sha256(canonical)</div>
-      <div className="break-all">{hash}</div>
+      <div className="space-y-3 p-4 font-mono">
+        <div>
+          <div className="text-[#a8a9b4]">canonical</div>
+          <div className="break-all text-white">{canonical}</div>
+        </div>
+        <div>
+          <div className="text-[#a8a9b4]">sha256(canonical)</div>
+          <div className="break-all text-[#8f7aff]">{hash}</div>
+        </div>
+      </div>
     </div>
   );
 }

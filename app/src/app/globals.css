@@ -1,27 +1,42 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens follow the Clerk design system: purple-500 as the single
+ * primary, gray neutrals, layered shadows, rounded-2xl cards, 4px spacing.
+ * Semantic names (paper, ink, free, stamp...) keep the app code readable.
+ */
 :root {
-  --paper: #f7f4ee;
-  --wash: #ece7dc;
-  --ink: #1d1b17;
-  --muted: #6b655a;
-  --line: #d9d2c3;
-  --free: #2f6b4f;
-  --stamp: #b42318;
-  --amber: #9a6a00;
-}
+  --purple-500: #6c47ff;
+  --purple-600: #6430f7;
+  --purple-50: #f3f0ff;
+  --sky-500: #00aee3;
+  --green-500: #22c543;
+  --green-700: #15803d;
+  --red-500: #ef4444;
+  --red-700: #b91c1c;
+  --gray-50: #f7f7f8;
+  --gray-100: #eeeef0;
+  --gray-500: #747686;
+  --gray-900: #212126;
+  --gray-950: #131316;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #16150f;
-    --wash: #24221b;
-    --ink: #ece7dc;
-    --muted: #a39d90;
-    --line: #3a372e;
-    --free: #6fc196;
-    --stamp: #ff7a6b;
-    --amber: #e3b34c;
-  }
+  --paper: #ffffff;
+  --wash: var(--gray-50);
+  --ink: var(--gray-950);
+  --muted: var(--gray-500);
+  --line: var(--gray-100);
+  --free: var(--green-700);
+  --stamp: var(--red-700);
+
+  --shadow-card:
+    0 0 0 1px rgb(0 0 0 / 0.06), 0 1px 1px rgb(0 0 0 / 0.04),
+    0 2px 4px rgb(0 0 0 / 0.04), 0 8px 24px -4px rgb(0 0 0 / 0.06);
+  --shadow-raised:
+    0 0 0 1px rgb(0 0 0 / 0.06), 0 2px 2px rgb(0 0 0 / 0.04),
+    0 8px 16px -4px rgb(0 0 0 / 0.08), 0 24px 48px -12px rgb(0 0 0 / 0.12);
+  --shadow-button:
+    0 0 0 1px var(--purple-600), 0 1px 1px rgb(0 0 0 / 0.08),
+    0 2px 4px -1px rgb(108 71 255 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.16);
 }
 
 @theme inline {
@@ -32,35 +47,73 @@
   --color-line: var(--line);
   --color-free: var(--free);
   --color-stamp: var(--stamp);
-  --color-amber: var(--amber);
-  --font-sans: var(--font-plex-sans);
-  --font-mono: var(--font-plex-mono);
+  --color-brand: var(--purple-500);
+  --color-brand-600: var(--purple-600);
+  --color-brand-50: var(--purple-50);
+  --color-sky: var(--sky-500);
+  --color-gray-900: var(--gray-900);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  color-scheme: light;
 }
 
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-plex-sans), system-ui, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--purple-500);
+  outline-offset: 2px;
+}
+
+/* Heading scale (Clerk heading-1..4), sentence case. */
+.heading-1 {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+.heading-3 {
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.heading-4 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .devnet-banner {
-  background: var(--amber);
+  background: var(--gray-950);
   color: #fff;
   text-align: center;
   font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.04em;
-  padding: 0.3rem 1rem;
+  padding: 0.4rem 1rem;
+}
+.devnet-banner strong {
+  color: #ffd166;
+  font-weight: 600;
 }
 
 .seal-mark {
-  width: 1.1rem;
-  height: 1.1rem;
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
   border-radius: 9999px;
-  border: 2px solid var(--stamp);
+  border: 2px solid var(--purple-500);
   box-shadow:
     inset 0 0 0 2px var(--paper),
-    inset 0 0 0 4px var(--stamp);
+    inset 0 0 0 5px var(--purple-500);
 }
 
 .btn {
@@ -70,65 +123,195 @@ body {
   gap: 0.5rem;
   border-radius: 0.375rem;
   padding: 0.5rem 1rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  transition: opacity 0.15s;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s,
+    box-shadow 0.15s;
 }
 .btn:disabled {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 .btn-primary {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--purple-500);
+  color: #fff;
+  box-shadow: var(--shadow-button);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--purple-600);
 }
 .btn-ghost {
-  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.1),
+    0 1px 2px rgb(0 0 0 / 0.06);
 }
 .btn-ghost:hover:not(:disabled) {
-  background: var(--wash);
+  background: var(--gray-50);
+}
+.btn-lg {
+  padding: 0.7rem 1.25rem;
+  font-size: 0.95rem;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.8rem;
-  color: var(--muted);
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--gray-900);
 }
 .field input {
-  border: 1px solid var(--line);
-  background: transparent;
+  background: var(--paper);
   color: var(--ink);
   border-radius: 0.375rem;
-  padding: 0.5rem 0.65rem;
-  font-size: 0.95rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.1),
+    0 1px 2px rgb(0 0 0 / 0.04);
+  transition: box-shadow 0.15s;
+}
+.field input::placeholder {
+  color: #a8a9b4;
 }
 .field input:focus {
-  outline: 2px solid var(--ink);
-  outline-offset: -1px;
+  outline: none;
+  box-shadow:
+    0 0 0 1px var(--purple-500),
+    0 0 0 4px rgb(108 71 255 / 0.15);
 }
 
 .card {
-  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.segmented {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
   border-radius: 0.5rem;
-  padding: 1.25rem;
+  background: var(--gray-100);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.segmented button {
+  border-radius: 0.375rem;
+  padding: 0.3rem 0.75rem;
+  color: var(--gray-500);
+}
+.segmented button[aria-pressed="true"] {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.06),
+    0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.badge::before {
+  content: "";
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: currentColor;
+}
+.badge-free {
+  background: #e9f9ec;
+  color: var(--green-700);
+}
+.badge-locked {
+  background: #fdecec;
+  color: var(--red-700);
+}
+.badge-muted {
+  background: var(--gray-100);
+  color: var(--gray-500);
 }
 
 /* The rejection stamp: moments 4 and 5 of the demo. */
 .stamp {
-  border: 3px double var(--stamp);
-  color: var(--stamp);
-  border-radius: 0.5rem;
+  background: #fef2f2;
+  color: var(--red-700);
+  border-radius: 0.75rem;
   padding: 1rem 1.25rem;
-  animation: stamp-in 0.25s ease-out;
+  box-shadow:
+    0 0 0 1px rgb(239 68 68 / 0.35),
+    0 0 0 4px rgb(239 68 68 / 0.08);
+  animation: stamp-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.3);
 }
 @keyframes stamp-in {
   from {
-    transform: scale(1.06) rotate(-1deg);
+    transform: scale(1.05);
     opacity: 0;
   }
   to {
     transform: none;
     opacity: 1;
+  }
+}
+
+.success {
+  background: #effbf1;
+  color: var(--green-700);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  box-shadow: 0 0 0 1px rgb(34 197 67 / 0.3);
+}
+
+/* Landing: the registry demo in the hero plays once on load. */
+.ledger-row {
+  animation: row-in 0.4s ease-out both;
+}
+.ledger-row:nth-child(2) {
+  animation-delay: 0.5s;
+}
+.ledger-row:nth-child(3) {
+  animation-delay: 1.3s;
+}
+.ledger-row:nth-child(3) .stamp {
+  animation: stamp-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3) 1.6s both;
+}
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.backdrop-grid {
+  background-image:
+    linear-gradient(to right, rgb(0 0 0 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(0 0 0 / 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse at 70% 40%, #000 20%, transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp,
+  .ledger-row,
+  .ledger-row:nth-child(3) .stamp {
+    animation: none;
   }
 }

@@ -20,21 +20,19 @@ import { useEffect, useState } from "react";
 import { InvoiceLookup, type InvoiceRef } from "@/components/InvoiceLookup";
 import { InvoiceStatus } from "@/components/InvoiceStatus";
 import { type OutcomeState, Outcome } from "@/components/Outcome";
+import { PageHeader } from "@/components/PageHeader";
 import { RequireWallet } from "@/components/RequireWallet";
 import { rpc } from "@/lib/config";
 import { readable, sendSeloTx } from "@/lib/tx";
 
 export default function LenderPage() {
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl font-semibold">Check before you finance</h1>
-        <p className="mt-1 max-w-2xl text-muted">
-          Look the invoice up in Selo. If it is free and attested by its buyer,
-          lock it: from then on every other lender sees it as financed by you,
-          and their lock is rejected.
-        </p>
-      </header>
+    <div>
+      <PageHeader step={3} title="Check before you finance">
+        Look the invoice up in Selo. If it is free and attested by its buyer,
+        lock it: from then on every other lender sees it as financed by you, and
+        their lock is rejected.
+      </PageHeader>
       <RequireWallet role="lender">
         {(signer, account) => (
           <LenderDesk signer={signer} wallet={account.address as Address} />
@@ -114,7 +112,7 @@ function LenderDesk({
 
   return (
     <div className="space-y-6">
-      <div className="card flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
+      <div className="card flex flex-wrap items-center gap-x-10 gap-y-3 py-4 text-sm">
         {desk === undefined && <span className="text-muted">Loading…</span>}
         {desk === null && (
           <span className="text-stamp">
@@ -124,7 +122,7 @@ function LenderDesk({
         {desk && (
           <>
             <span>
-              <span className="text-muted">Lender </span>
+              <span className="text-muted block text-xs">Lender</span>
               {desk.name ? (
                 <strong>{desk.name}</strong>
               ) : (
@@ -135,11 +133,13 @@ function LenderDesk({
               )}
             </span>
             <span>
-              <span className="text-muted">Balance </span>
+              <span className="text-muted block text-xs">Balance</span>
               {usdcDev(desk.balance)}
             </span>
             <span>
-              <span className="text-muted">Lock fee </span>
+              <span className="text-muted block text-xs">
+                Lock fee per invoice
+              </span>
               {usdcDev(desk.fee)}
             </span>
           </>

@@ -44,14 +44,12 @@ export function InvoiceLookup({
 
   return (
     <section className="card space-y-4">
-      <div className="flex gap-1 text-sm">
+      <div className="segmented">
         {(["data", "hash"] as const).map((m) => (
           <button
             key={m}
             type="button"
-            className={`rounded px-2.5 py-1 ${
-              mode === m ? "bg-ink text-paper" : "text-muted hover:text-ink"
-            }`}
+            aria-pressed={mode === m}
             onClick={() => setMode(m)}
           >
             {m === "data" ? "Invoice data" : "Invoice hash"}
@@ -74,13 +72,15 @@ export function InvoiceLookup({
       <div className="flex items-center gap-3">
         <button
           type="button"
-          className="btn btn-ghost"
+          className="btn btn-primary"
           disabled={!ready || busy}
           onClick={run}
         >
           {busy ? "Checking…" : "Check registry"}
         </button>
-        {error && <span className="text-sm text-stamp">{error}</span>}
+        {error && (
+          <span className="text-stamp text-sm font-medium">{error}</span>
+        )}
       </div>
     </section>
   );

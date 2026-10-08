@@ -8,6 +8,7 @@ import {
 } from "@selo/sdk";
 import { useState } from "react";
 import { type OutcomeState, Outcome } from "@/components/Outcome";
+import { PageHeader } from "@/components/PageHeader";
 import { RequireWallet } from "@/components/RequireWallet";
 import { SealList } from "@/components/SealList";
 import { readable, sendSeloTx } from "@/lib/tx";
@@ -16,14 +17,11 @@ export default function BuyerPage() {
   const [outcome, setOutcome] = useState<OutcomeState>({ kind: "idle" });
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl font-semibold">Invoices addressed to you</h1>
-        <p className="mt-1 max-w-2xl text-muted">
-          Attest that an invoice is real and due. Lenders can only finance
-          invoices their buyer has attested.
-        </p>
-      </header>
+    <div>
+      <PageHeader step={2} title="Invoices addressed to you">
+        Attest that an invoice is real and due. Lenders can only finance
+        invoices their buyer has attested.
+      </PageHeader>
 
       <RequireWallet role="buyer">
         {(signer, account) => (

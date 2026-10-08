@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
 
-const sans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
+const sans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
 });
 
-const mono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
+const mono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -27,17 +25,27 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body className="flex min-h-screen flex-col">
         <div className="devnet-banner">
-          Devnet — test tokens only. No real money.
+          <strong>Devnet</strong> — test tokens only. No real money.
         </div>
         <Providers>
           <Nav />
-          <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-            {children}
-          </main>
+          <main className="flex flex-1 flex-col">{children}</main>
         </Providers>
-        <footer className="border-t border-line py-4 text-center text-xs text-muted">
-          Selo is a registry, not a lender. Only the invoice hash and its
-          amount, currency and due date go on-chain.
+        <footer className="border-line border-t">
+          <div className="text-muted mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-xs sm:px-6">
+            <span>
+              Selo is a registry, not a lender. Only the invoice hash and its
+              amount, currency and due date go on-chain.
+            </span>
+            <a
+              href="https://github.com/davimqz/selo"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-ink"
+            >
+              Source on GitHub
+            </a>
+          </div>
         </footer>
       </body>
     </html>

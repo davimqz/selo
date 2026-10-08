@@ -5,6 +5,7 @@ import { getSealInvoiceInstructionAsync, sealArgs } from "@selo/sdk";
 import { useState } from "react";
 import { InvoiceFields } from "@/components/InvoiceFields";
 import { type OutcomeState, Outcome } from "@/components/Outcome";
+import { PageHeader } from "@/components/PageHeader";
 import { RequireWallet } from "@/components/RequireWallet";
 import { SealList } from "@/components/SealList";
 import { EMPTY_FORM, parseForm } from "@/lib/invoice";
@@ -19,15 +20,12 @@ export default function SupplierPage() {
   const buyerOk = isAddress(buyer.trim());
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl font-semibold">Seal an invoice</h1>
-        <p className="mt-1 max-w-2xl text-muted">
-          Your browser turns the invoice into a canonical hash. Only the hash,
-          amount, currency and due date go on-chain. The same invoice can be
-          sealed only once — however it is typed.
-        </p>
-      </header>
+    <div>
+      <PageHeader step={1} title="Seal an invoice">
+        Your browser turns the invoice into a canonical hash. Only the hash,
+        amount, currency and due date go on-chain. The same invoice can be
+        sealed only once, however it is typed.
+      </PageHeader>
 
       <RequireWallet role="supplier">
         {(signer, account) => (
@@ -86,7 +84,7 @@ export default function SupplierPage() {
               <Outcome state={outcome} />
             </section>
 
-            <section className="space-y-3">
+            <section className="mt-10 space-y-3">
               <h2 className="text-lg font-semibold">Your seals</h2>
               <SealList
                 by={{ supplier: account.address as Address }}

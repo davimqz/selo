@@ -24,8 +24,12 @@ export function RequireWallet({
   const [account] = useSelectedWalletAccount();
   if (!account) {
     return (
-      <div className="card text-sm text-muted">
-        Connect the {role}&apos;s wallet (top right) to continue.
+      <div className="card flex flex-col items-start gap-1 text-sm">
+        <span className="font-medium">Connect a wallet to continue</span>
+        <span className="text-muted">
+          Use the {role}&apos;s wallet, with Phantom set to Solana Devnet. The
+          Connect wallet button is at the top right.
+        </span>
       </div>
     );
   }
