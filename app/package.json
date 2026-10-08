@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "demo": "next build && next start -H 127.0.0.1 -p 3000"
   },
   "dependencies": {
     "@selo/sdk": "workspace:*",

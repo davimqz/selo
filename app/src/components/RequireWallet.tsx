@@ -1,19 +1,21 @@
 "use client";
 
-import type { TransactionModifyingSigner } from "@solana/kit";
+import type { Address, TransactionSigner } from "@solana/kit";
 import {
   useSelectedWalletAccount,
   useWalletAccountTransactionSigner,
 } from "@solana/react";
 import type { UiWalletAccount } from "@wallet-standard/react";
+import { Fragment } from "react";
 import { CHAIN } from "@/lib/config";
+import { useDemo } from "./Demo";
 
-type Render = (
-  signer: TransactionModifyingSigner,
-  account: UiWalletAccount,
-) => React.ReactNode;
+type Render = (signer: TransactionSigner, address: Address) => React.ReactNode;
 
-/** Renders children with a signer for the selected wallet account. */
+/**
+ * Renders children with a signer: the selected wallet account, or the demo
+ * wallet for this role when demo mode is on.
+ */
 export function RequireWallet({
   children,
   role,
@@ -22,6 +24,15 @@ export function RequireWallet({
   role: string;
 }) {
   const [account] = useSelectedWalletAccount();
+  const demo = useDemo();
+  if (demo.active) {
+    const { signer } = demo.active;
+    return (
+      <Fragment key={signer.address}>
+        {children(signer, signer.address)}
+      </Fragment>
+    );
+  }
   if (!account) {
     return (
       <div className="card flex flex-col items-start gap-1 text-sm">
@@ -48,5 +59,5 @@ function WithSigner({
   children: Render;
 }) {
   const signer = useWalletAccountTransactionSigner(account, CHAIN);
-  return <>{children(signer, account)}</>;
+  return <>{children(signer, account.address as Address)}</>;
 }

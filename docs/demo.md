@@ -82,6 +82,32 @@ fatura selada fica no registro para sempre — é esse o ponto.
 Opcional para o vídeo: `/verificar` mostra o mesmo estado sem carteira, e o
 link *seal account ↗* abre a conta no Solana Explorer.
 
+## Modo demo (sem Phantom)
+
+Para gravar sem trocar de conta na Phantom. O app continua o mesmo e as
+transações são reais na devnet; só a assinatura muda: o navegador assina com as
+carteiras de `scripts/wallets/demo`.
+
+1. Em `app/.env.local`, acrescentar `SELO_DEMO_MODE=1`.
+2. `pnpm --filter app demo` (faz o build e sobe em http://localhost:3000, só no
+   127.0.0.1).
+3. Na faixa roxa "Demo mode", escolher **Supplier**. Ao trocar de tela, o papel
+   acompanha: `/comprador` assina como Buyer e `/financiador` como Lender A,
+   com o botão **Lender B** ao lado. **My wallet** volta para a Phantom.
+
+Atalhos que só aparecem no modo demo:
+
+- `/fornecedor`: **New demo invoice** gera um número novo a cada take, e o
+  endereço do comprador já vem preenchido.
+- `/financiador`: **Use the sealed demo invoice** preenche a última fatura
+  selada.
+- `/fornecedor`, depois de selar: **Same invoice, typed differently** preenche
+  a mesma fatura em minúsculas e com espaços (momento 5).
+
+A rota que entrega as chaves (`/api/demo-wallets`) responde 404 sem a flag,
+fora de `localhost` e no Vercel. As chaves nunca entram no repositório nem no
+bundle publicado.
+
 ## Problemas conhecidos
 
 | Sintoma | Causa e solução |

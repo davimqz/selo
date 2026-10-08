@@ -1,6 +1,5 @@
 "use client";
 
-import type { Address } from "@solana/kit";
 import {
   type SealEntry,
   SealStatus,
@@ -24,10 +23,10 @@ export default function BuyerPage() {
       </PageHeader>
 
       <RequireWallet role="buyer">
-        {(signer, account) => (
+        {(signer, address) => (
           <section className="space-y-4">
             <SealList
-              by={{ buyer: account.address as Address }}
+              by={{ buyer: address }}
               action={(seal: SealEntry, reload) =>
                 !seal.data.buyerAttested &&
                 (seal.data.status === SealStatus.Sealed ||

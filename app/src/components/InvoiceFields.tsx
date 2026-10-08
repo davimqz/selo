@@ -1,6 +1,7 @@
 "use client";
 
 import { type InvoiceForm, type Parsed, exampleForm } from "@/lib/invoice";
+import { freshDemoInvoice, retyped, useDemo } from "./Demo";
 
 const FIELDS: {
   key: keyof InvoiceForm;
@@ -29,6 +30,7 @@ export function InvoiceFields({
   onChange: (form: InvoiceForm) => void;
   parsed: Parsed;
 }) {
+  const demo = useDemo();
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -47,13 +49,45 @@ export function InvoiceFields({
         ))}
       </div>
       <div className="flex flex-wrap items-center gap-3 text-xs">
-        <button
-          type="button"
-          className="text-brand font-medium hover:underline"
-          onClick={() => onChange(exampleForm())}
-        >
-          Fill the example invoice
-        </button>
+        {demo.active ? (
+          <>
+            {demo.active.role === "supplier" && (
+              <button
+                type="button"
+                className="text-brand font-medium hover:underline"
+                onClick={() => onChange(freshDemoInvoice())}
+              >
+                New demo invoice
+              </button>
+            )}
+            {demo.invoice && (
+              <button
+                type="button"
+                className="text-brand font-medium hover:underline"
+                onClick={() => onChange(demo.invoice!)}
+              >
+                Use the sealed demo invoice
+              </button>
+            )}
+            {demo.invoice && demo.active.role === "supplier" && (
+              <button
+                type="button"
+                className="text-brand font-medium hover:underline"
+                onClick={() => onChange(retyped(demo.invoice!))}
+              >
+                Same invoice, typed differently
+              </button>
+            )}
+          </>
+        ) : (
+          <button
+            type="button"
+            className="text-brand font-medium hover:underline"
+            onClick={() => onChange(exampleForm())}
+          >
+            Fill the example invoice
+          </button>
+        )}
         {!parsed.ok && parsed.error && (
           <span className="text-stamp font-medium">{parsed.error}</span>
         )}

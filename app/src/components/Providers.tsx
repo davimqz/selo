@@ -3,6 +3,7 @@
 import { SelectedWalletAccountContextProvider } from "@solana/react";
 import { SolanaSignTransaction } from "@solana/wallet-standard-features";
 import type { UiWallet } from "@wallet-standard/react";
+import { DemoProvider } from "./Demo";
 
 const STORAGE_KEY = "selo:selected-wallet-account";
 
@@ -36,7 +37,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       filterWallets={filterWallets}
       stateSync={stateSync}
     >
-      {children}
+      <DemoProvider>{children}</DemoProvider>
     </SelectedWalletAccountContextProvider>
   );
 }

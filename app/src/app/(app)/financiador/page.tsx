@@ -1,6 +1,6 @@
 "use client";
 
-import type { Address, TransactionModifyingSigner } from "@solana/kit";
+import type { Address, TransactionSigner } from "@solana/kit";
 import {
   TOKEN_PROGRAM_ADDRESS,
   fetchMaybeToken,
@@ -34,9 +34,7 @@ export default function LenderPage() {
         their lock is rejected.
       </PageHeader>
       <RequireWallet role="lender">
-        {(signer, account) => (
-          <LenderDesk signer={signer} wallet={account.address as Address} />
-        )}
+        {(signer, address) => <LenderDesk signer={signer} wallet={address} />}
       </RequireWallet>
     </div>
   );
@@ -60,7 +58,7 @@ function LenderDesk({
   signer,
   wallet,
 }: {
-  signer: TransactionModifyingSigner;
+  signer: TransactionSigner;
   wallet: Address;
 }) {
   const [desk, setDesk] = useState<Desk | null>();

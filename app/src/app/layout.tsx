@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { DemoBar } from "@/components/Demo";
 import { Nav } from "@/components/Nav";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </div>
         <Providers>
           <Nav />
+          <DemoBar />
           <main className="flex flex-1 flex-col">{children}</main>
         </Providers>
         <footer className="border-line border-t">
