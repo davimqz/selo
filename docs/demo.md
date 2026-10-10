@@ -64,11 +64,17 @@ fatura selada fica no registro para sempre — é esse o ponto.
    invoice*, trocar o número, colar o endereço do comprador, **Seal invoice**.
    Mostrar a forma canônica e o hash calculados no navegador: só o hash vai
    on-chain.
-2. **Comprador atesta** — conta *Buyer*, `/comprador`. A fatura aparece na
-   lista; **Attest**.
-3. **Financiador A trava** — conta *Lender A*, `/financiador`. Digitar a fatura
-   (ou colar o hash, botão *copy* na lista do fornecedor), **Check registry**:
-   "Sealed — not financed", *Buyer attested: Yes*. **Finance (lock invoice)**.
+2. **Comprador atesta** — conta *Buyer*, `/comprador`. O cartão *Verified
+   identity* mostra **Demo Buyer Inc.** (comprador verificado pelo
+   `seed-demo` para o id fiscal `US 94-1081436`, o da fatura de exemplo). A
+   fatura aparece na lista; **Attest**. Use sempre esse id fiscal do
+   comprador: com outro, a tela do financiador mostra "not verified" e o
+   travamento falha.
+3. **Financiador A trava** — conta *Lender A*, `/financiador`. Digitar os
+   dados da fatura (pelo hash só dá para consultar; para travar, o programa
+   confere o comprador contra o id fiscal da fatura), **Check registry**:
+   "Sealed — not financed", *Buyer identity: Verified: Demo Buyer Inc.*,
+   *Buyer attested: Yes*. **Finance (lock invoice)**.
 4. **Financiador B é rejeitado** — conta *Lender B*, mesma tela, mesma fatura.
    O status já mostra "Financed by Lender A". Clicar **Finance** mesmo assim:
    carimbo vermelho *"Rejected by the Selo program — Already financed by
@@ -116,6 +122,8 @@ bundle publicado.
 | Deploy: `Data writes to account failed: Max retries exceeded` | RPC pública perdeu escritas. Recuperar o SOL do buffer com `solana program close <buffer> --url devnet --bypass-warning` e repetir com `solana program deploy target/deploy/selo.so --program-id target/deploy/selo-keypair.json --url devnet --max-sign-attempts 100 --with-compute-unit-price 50000`. |
 | Servidor do app cai sozinho | Pouca memória no Windows. `wsl --shutdown` (o app não precisa do WSL), fechar abas pesadas, usar `next start` em vez de `next dev`. Se a porta 3000 ficar ocupada, encerrar o processo `node` antigo. |
 | "This wallet has no devnet SOL to pay the network fee." | Rodar `seed-demo` de novo. |
+| `/comprador`: "This wallet is not verified as a company" | A conta conectada não é a *Buyer* da demo, ou o `seed-demo` não rodou depois do upgrade de 10/10. Rodar `seed-demo` com `BUYER=<comprador>`. |
+| Lock: "The buyer on the invoice is not verified" / *not verified* | O id fiscal do comprador digitado não é `US 94-1081436`. |
 | "This lender is not registered in Selo." | A conta conectada não é Lender A/B; conferir a conta na Phantom ou rodar `seed-demo` com o endereço certo. |
 | A Phantom não mostra a transação certa / saldo zero | Phantom fora da devnet: ativar o modo testnet e escolher Solana Devnet. |
 
