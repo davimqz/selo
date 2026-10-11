@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { WalletButton } from "./WalletButton";
@@ -16,9 +17,15 @@ export function Nav() {
   return (
     <header className="border-line bg-paper/85 sticky top-0 z-30 border-b backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="seal-mark" aria-hidden />
-          <span className="text-lg font-semibold tracking-tight">Selo</span>
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="Selo"
+            width={904}
+            height={235}
+            priority
+            className="h-7 w-auto"
+          />
         </Link>
         <nav className="flex flex-1 flex-wrap gap-1 text-sm font-medium">
           {LINKS.map((l) => (
