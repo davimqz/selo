@@ -2,25 +2,69 @@
 
 <p align="center"><b>One invoice. One lender. Ever.</b></p>
 
-**A public, neutral invoice registry on Solana that stops the same invoice from being financed twice.**
+<p align="center">
+  A public, neutral invoice registry on Solana that stops the same invoice from being financed twice.
+</p>
+
+<p align="center">
+  <a href="https://selo-iota-three.vercel.app"><img alt="Live app" src="https://img.shields.io/badge/app-live%20on%20devnet-6B2CFF"></a>
+  <a href="https://explorer.solana.com/address/4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio?cluster=devnet"><img alt="Program on devnet" src="https://img.shields.io/badge/program-devnet-0A0A0A"></a>
+  <img alt="Tests" src="https://img.shields.io/badge/tests-122%20passing-0A0A0A">
+  <img alt="Anchor 1.2.0" src="https://img.shields.io/badge/Anchor-1.2.0-0A0A0A">
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-0A0A0A"></a>
+</p>
+
+---
 
 Receivables are financed by lenders who cannot see each other. The same invoice can be pledged to
 two lenders, or an invented one financed several times. In the First Brands collapse, prosecutors
 allege fake invoices and collateral pledged two or three times, with billions lost by creditors.
 
-Selo gives every invoice a single on-chain address derived from its data. A lender checks the
-address before financing, and once one lender locks the invoice, every other lender is rejected
-and told who financed it first.
+**Selo gives every invoice a single on-chain address derived from its data.** A lender checks the
+address before financing. Once one lender locks the invoice, every other lender is rejected and told
+who financed it first. Retyping the invoice in lowercase or with extra spaces does not create a new
+one. Only a hash goes on-chain.
 
 > **Devnet only.** Test tokens only, no real money, no yield. Built for the Colosseum Crypto
 > World's Fair (Solana track).
 
 | | |
 |---|---|
-| App | [selo-iota-three.vercel.app](https://selo-iota-three.vercel.app) |
+| Live app | [selo-iota-three.vercel.app](https://selo-iota-three.vercel.app) |
 | Program ID (devnet) | [`4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio`](https://explorer.solana.com/address/4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio?cluster=devnet) |
 | Fee mint, `USDC-dev` (test token) | [`Gj8cs9urnjgy29Nz3k5EQNrJZLbapCDSi55X4SU4xAqv`](https://explorer.solana.com/address/Gj8cs9urnjgy29Nz3k5EQNrJZLbapCDSi55X4SU4xAqv?cluster=devnet) |
 | Lock fee | 1 `USDC-dev` per locked invoice |
+| Lender SDK | [`packages/sdk`](packages/sdk): `checkInvoice()`, canonical hash, instruction builders |
+
+---
+
+## For judges: Selo in five minutes
+
+1. **See a rejection without a wallet (1 min).** Open
+   [`/verificar`](https://selo-iota-three.vercel.app/verificar), choose **Invoice hash** and paste:
+
+   ```
+   987403bcf71b7cb4655aeb1bd500703888890f56eea9cf36411e9b9786c0c90c
+   ```
+
+   The registry answers *Financed by Lender A* with the lock date, read live from devnet. Any
+   other lender that tries to lock this invoice is rejected by the program. The *seal account ↗*
+   link opens the account in Solana Explorer.
+2. **Read the one call a lender integrates (1 min):** [`checkInvoice()`](#integrating-checkinvoice).
+3. **Check the rules the program enforces (2 min):** [Invariants](#invariants) and the
+   [trust model](#trust-model-verified-buyers), each covered by tests ([Testing](#testing)).
+4. **Run the five demo moments yourself (optional):** the [demo guide](docs/demo.md) seals,
+   attests, locks and gets rejected twice, on devnet in the browser. `pnpm e2e-demo` runs the same
+   flow from the command line.
+
+| What a judge may look for | Where |
+|---|---|
+| Working product | [Live app](https://selo-iota-three.vercel.app), [program on devnet](https://explorer.solana.com/address/4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio?cluster=devnet), [demo guide](docs/demo.md) |
+| Why Solana | [What Selo is](#what-selo-is-and-is-not), [architecture](docs/ARCHITECTURE.md#why-solana) |
+| Technical depth | [Architecture](docs/ARCHITECTURE.md), [program reference](#program-reference), [122 tests](#testing) |
+| Security thinking | [Security and threat model](SECURITY.md), [limitations](#limitations) |
+| Business model | [Business model](#business-model), [pitch script](docs/pitch.md) |
+| Open source | MIT license; the whole stack is in this repository |
 
 ---
 
@@ -32,12 +76,16 @@ and told who financed it first.
 - [Trust model: verified buyers](#trust-model-verified-buyers)
 - [Invariants](#invariants)
 - [Canonical invoice hash](#canonical-invoice-hash)
+- [Architecture](#architecture)
 - [Program reference](#program-reference)
+- [Testing](#testing)
 - [Repository layout](#repository-layout)
 - [Running it](#running-it)
 - [Limitations](#limitations)
 - [Business model](#business-model)
 - [Roadmap](#roadmap)
+- [Documentation](#documentation)
+- [Team](#team)
 
 ---
 
@@ -50,7 +98,8 @@ and told who financed it first.
   underwriting and money flows and call Selo before they fund.
 - **Why Solana:** a check is a free account read, and a lock costs a fraction of a cent and
   confirms in under a second. That makes it practical to register small invoices and to check in
-  real time inside a credit decision.
+  real time inside a credit decision. A neutral, public ledger also means no lender has to trust a
+  registry run by a competitor.
 
 ## How it works
 
@@ -207,6 +256,40 @@ invoice_hash = sha256(utf8(canonical string))
 - On-chain, only `face_amount`, `currency` and `due_ts` are stored in clear. No names, descriptions
   or documents.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Clients
+        App["Next.js app<br/>supplier · buyer · lender · public lookup"]
+        LenderSys["A lender's credit system"]
+    end
+    SDK["@selo/sdk<br/>canonical hash · checkInvoice()<br/>Codama builders · error translation"]
+    RPC["Solana RPC<br/>(Helius, devnet)"]
+    subgraph Program["Selo program (Anchor)"]
+        Config[("Config")]
+        Lender[("Lender")]
+        Buyer[("Buyer (KYB)")]
+        Seal[("Seal<br/>PDA = hash")]
+    end
+    App --> SDK
+    LenderSys --> SDK
+    SDK --> RPC --> Program
+```
+
+- **The PDA is the uniqueness check.** `seal_invoice` creates the account at `["seal", hash]`
+  with `init`, so a duplicate fails in the runtime itself, with no index or lookup table to keep
+  consistent.
+- **Hashing happens in the browser.** Invoice data never leaves the user's machine; the app and the
+  SDK share the same `canonicalize()`.
+- **Every transaction is simulated first.** A rejection (duplicate seal, invoice already financed)
+  is shown in plain language before the wallet asks for a signature, so no fee is spent on a
+  transaction that would fail.
+- **Wallet Standard + `@solana/kit`** end to end: wallet signers go straight into the generated
+  instruction builders, with no web3.js v1 dependency.
+
+Design decisions, data flows and account sizes: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 ## Program reference
 
 Anchor program in [`programs/selo`](programs/selo). Every PDA stores its bump; amounts are `u64` in
@@ -240,23 +323,81 @@ Events: `InvoiceSealed`, `InvoiceAttested`, `InvoiceLocked`, `InvoiceReleased`, 
 is rejected because the invoice is taken, the program logs who holds it and the SDK reads the
 lender's name from its account.
 
+### Errors
+
+Every custom error has a readable message in the SDK ([`errors.ts`](packages/sdk/src/errors.ts)),
+and no raw Anchor error reaches the UI.
+
+| Error | When |
+|---|---|
+| `InvoiceAlreadySealed` | the same invoice (same canonical hash) is sealed again |
+| `InvoiceAlreadyLocked` | a lender locks an invoice another lender already financed |
+| `NotAttested` | a lock before the buyer attested |
+| `BuyerNotVerified`, `BuyerMismatch` | the attesting wallet is not, or is no longer, the verified wallet of the company on the invoice |
+| `LenderInactive`, `NotLockHolder`, `InvalidStatus` | wrong lender, wrong signer or wrong state |
+| `Paused`, `DueDateInPast`, `InvalidAmount`, `InvalidCurrency`, `InvalidBuyer` | input and circuit-breaker checks |
+| `NotUpgradeAuthority`, `LockFeeTooHigh`, `InvalidFeeMint` | registry setup |
+
+## Testing
+
+**122 tests, all passing**, run with Vitest against the compiled program in
+[LiteSVM](https://github.com/LiteSVM/litesvm), so the whole suite takes about three seconds.
+
+| File | Tests | Covers |
+|---|---:|---|
+| [`tests/seal.test.ts`](tests/seal.test.ts) | 18 | duplicate seals with identical data, retyped data, another wallet, after cancellation; PDA pre-funding griefing; pause; cancellation keeps the account |
+| [`tests/lock.test.ts`](tests/lock.test.ts) | 26 | attestation by the right signer only; lock charges the exact fee; Lender B rejected with a translatable error; no lock without attestation; inactive, unregistered or impersonating lenders; wrong treasury, mint or payer; release by the lock holder only |
+| [`tests/buyer.test.ts`](tests/buyer.test.ts) | 13 | KYB registry: one wallet per tax ID; unverified and revoked buyers; `BuyerMismatch`; buyer verification in `checkInvoice()` |
+| [`tests/admin.test.ts`](tests/admin.test.ts) | 17 | `initialize` only by the upgrade authority; fee and mint limits; admin-only lender registry and pause |
+| [`tests/demo.test.ts`](tests/demo.test.ts) | 1 | the five demo moments, end to end |
+| [`tests/program.test.ts`](tests/program.test.ts) | 2 | program loads; fee mint setup |
+| [`packages/sdk/test/hash.test.ts`](packages/sdk/test/hash.test.ts) | 39 | canonical form and pinned golden hash vectors |
+| [`packages/sdk/test/errors.test.ts`](packages/sdk/test/errors.test.ts) | 6 | program errors translated to readable messages |
+
+```bash
+pnpm test:program   # anchor build → Codama client → Vitest on LiteSVM
+```
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the following:
+- prettier, rustfmt and `clippy -D warnings`;
+- the program build;
+- a check that the generated client matches the IDL;
+- the typecheck, the tests and the app build.
+
+`pnpm e2e-demo 3` runs the five moments three times against a live cluster through the app's own
+transaction code.
+
 ## Repository layout
 
 ```
 programs/selo/   Anchor program (Rust)
 packages/sdk/    canonical hash, checkInvoice(), buyers, error translation, Codama client
-app/             Next.js frontend: /fornecedor, /comprador, /financiador, /verificar
+app/             Next.js frontend: landing page, /fornecedor, /comprador, /financiador, /verificar
 scripts/         USDC-dev mint, registry seeding, end-to-end demo against a cluster
 tests/           program tests (Vitest + LiteSVM)
-docs/            demo script, pitch
+docs/            architecture, demo guide, pitch script
 ```
 
 | Route | Who | What |
 |---|---|---|
+| `/` | everyone | Landing page: the problem, how it works, the hash, the SDK |
 | `/fornecedor` | supplier | Enter the invoice, hash it in the browser, seal it; list your seals |
 | `/comprador` | buyer | See your verified identity and the invoices addressed to you; attest |
 | `/financiador` | lender | Look an invoice up, see status and buyer verification, lock it |
-| `/verificar` | anyone | Public lookup by invoice data or hash |
+| `/verificar` | anyone | Public lookup by invoice data or hash, no wallet needed |
+
+The route names are Portuguese (*fornecedor* = supplier, *comprador* = buyer, *financiador* =
+lender, *verificar* = verify); the whole interface is in English.
+
+### Stack
+
+| Layer | Choice |
+|---|---|
+| Program | Rust 1.89, Anchor 1.2.0, Solana CLI 4.1.2 |
+| Tests | Vitest 5 + LiteSVM 1.4.1 |
+| Client | `@solana/kit` 8.3.0, client generated from the IDL with Codama |
+| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4, Wallet Standard + `@solana/react` |
+| Infrastructure | Helius devnet RPC, Vercel |
 
 ## Running it
 
@@ -288,17 +429,25 @@ pnpm lint           # prettier, rustfmt, clippy -D warnings, eslint
 pnpm typecheck
 ```
 
-### Run the demo against a cluster
+### Run the app against devnet
+
+The app reads everything it needs (program ID, fee mint, treasury) from the SDK and the on-chain
+`Config` account, so pointing it at devnet only takes an RPC URL:
+
+```bash
+cp .env.example app/.env.local       # set NEXT_PUBLIC_RPC_URL to a Helius devnet URL
+pnpm --filter app dev                # http://localhost:3000
+```
+
+### Run the full demo on your own registry
 
 ```bash
 cp .env.example .env                 # RPC_URL (a Helius devnet URL) and WALLET_PATH (upgrade authority)
-cp .env.example app/.env.local       # NEXT_PUBLIC_RPC_URL
 
 # Idempotent: mint, initialize, register lenders, verify the buyer, fund wallets
 LENDER_A=<wallet> LENDER_B=<wallet> SUPPLIER=<wallet> BUYER=<wallet> pnpm seed-demo
 
 pnpm e2e-demo 3                      # the five demo moments, 3 times, through the app's own tx code
-pnpm --filter app dev                # http://localhost:3000
 ```
 
 Step-by-step recording script, wallets and known issues: [`docs/demo.md`](docs/demo.md).
@@ -318,6 +467,7 @@ Step-by-step recording script, wallets and known issues: [`docs/demo.md`](docs/d
 - **A seal is not an assignment.** Selo records that a lender locked an invoice; the legal
   assignment of the receivable is still the lenders' contract.
 - **Verification is centralized on devnet.** One admin key verifies buyers; see the roadmap.
+- **Not audited.** This is a hackathon build on devnet. See [SECURITY.md](SECURITY.md).
 
 ## Business model
 
@@ -327,15 +477,35 @@ Step-by-step recording script, wallets and known issues: [`docs/demo.md`](docs/d
   of that volume went through Selo at 5 bps, that is about €20 million a year.
 - **Why lenders pay:** the fee is smaller than a single loss to double financing, and the registry
   becomes more valuable with every lender that joins.
+- **Who the customers are:** factoring companies, fintech lenders, banks' receivables desks and
+  on-chain credit protocols. Selo serves them all from the same neutral registry and competes with
+  none of them.
 
 ## Roadmap
 
+- **Pilots** with factoring firms and on-chain credit protocols.
 - **Verification network:** accept KYB credentials from several accredited providers (Solana
   Attestation Service) instead of a single admin; admin and upgrade keys in a Squads multisig.
 - **HTTP API and webhooks** so traditional lenders can check and subscribe without a wallet.
 - **Partial financing:** several lenders funding tranches of one invoice, capped at its face value.
 - **Hash format v2:** tighter normalization of invoice numbers.
-- **Audit**, and legal review of receivables assignment across jurisdictions.
+- **Audit**, legal review of receivables assignment across jurisdictions, then mainnet.
+
+## Documentation
+
+| Document | What it covers |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, transaction flows, design decisions, account sizes |
+| [SECURITY.md](SECURITY.md) | Threat model, the attacks the program blocks, known limitations, reporting |
+| [docs/demo.md](docs/demo.md) | How to run and record the five demo moments on devnet; troubleshooting |
+| [docs/pitch.md](docs/pitch.md) | The pitch video script and the numbers behind it |
+| [CLAUDE.md](CLAUDE.md), [TASKS.md](TASKS.md), [docs/prompts.md](docs/prompts.md) | The project brief, day-by-day plan and prompts used to build Selo with Claude Code |
+
+## Team
+
+Built by **Davi Marques Oliveira** ([@davimqz](https://github.com/davimqz)) for the Colosseum
+Crypto World's Fair, Solana track. Development was AI-assisted with Claude Code; the brief, the
+plan and the prompts are in the repository.
 
 ## License
 

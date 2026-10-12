@@ -1,153 +1,191 @@
-# CLAUDE.md — Selo: o registro global que impede financiar a mesma fatura duas vezes
+# CLAUDE.md — Selo: the global registry that stops the same invoice from being financed twice
 
-Contexto permanente do projeto para qualquer sessão do Claude Code neste repositório. Leia antes de tocar em qualquer módulo. O passo a passo está em `TASKS.md`; os prompts de trabalho estão em `docs/prompts.md`.
+Permanent project context for any Claude Code session in this repository. Read it before touching
+any module. The step-by-step plan is in `TASKS.md`; the working prompts are in `docs/prompts.md`.
 
-Data de referência: 06/10/2026. Entrega do hackathon (Colosseum Crypto World's Fair, trilha Solana): **12/10/2026** — confira horário e fuso na plataforma, não assuma.
+Reference date: 06 Oct 2026. Hackathon deadline (Colosseum Crypto World's Fair, Solana track):
+**12 Oct 2026**. Check the time and time zone on the platform; do not assume them.
 
-## 1. O que este projeto é
+## 1. What this project is
 
-**Selo é um registro público e neutro de faturas na Solana. Antes de financiar uma fatura, qualquer financiador consulta o Selo; se ela já estiver financiada por outro, a segunda operação é bloqueada.**
+**Selo is a public, neutral invoice registry on Solana. Before financing an invoice, any lender
+checks Selo; if another lender has already financed it, the second operation is blocked.**
 
-- **O problema:** recebíveis são financiados por credores que não se enxergam. A mesma fatura pode ser cedida a dois financiadores, ou uma fatura inventada pode ser financiada várias vezes. No colapso da First Brands, a acusação alega faturas falsas e garantias empenhadas duas ou três vezes, com bilhões em perdas para credores.
-- **O que o Selo faz:** cada fatura vira uma conta derivada do hash canônico dos seus dados. Selar a mesma fatura de novo falha. Um financiador "trava" a fatura ao financiá-la; um segundo financiador que tentar travar é rejeitado e vê quem já financiou.
-- **O que o Selo NÃO é:** não é um financiador, não tem pool, não empresta dinheiro, não concorre com protocolos de crédito. **Protocolos de crédito e factorings são clientes do Selo, não concorrentes.**
-- **Por que Solana:** consulta e travamento custam frações de centavo e confirmam em menos de um segundo, então dá para registrar faturas pequenas e checar em tempo real no fluxo de crédito.
+- **The problem:** receivables are financed by lenders who cannot see each other. The same invoice
+  can be assigned to two lenders, or an invented invoice can be financed several times. In the
+  First Brands collapse, prosecutors allege fake invoices and collateral pledged two or three
+  times, with billions in losses for creditors.
+- **What Selo does:** each invoice becomes an account derived from the canonical hash of its data.
+  Sealing the same invoice again fails. A lender "locks" the invoice when it finances it; a second
+  lender that tries to lock it is rejected and sees who financed it first.
+- **What Selo is NOT:** it is not a lender, it has no pool, it does not lend money and it does not
+  compete with credit protocols. **Credit protocols and factoring companies are Selo's customers,
+  not its competitors.**
+- **Why Solana:** checking and locking cost fractions of a cent and confirm in under a second, so
+  small invoices can be registered and checked in real time inside the credit flow.
 
-**Escopo desta versão:** demo funcional em devnet. Nada de mainnet, nada de dinheiro real.
+**Scope of this version:** a working demo on devnet. No mainnet, no real money.
 
-## 2. Regra de ouro: 6 dias, escopo congelado
+## 2. Golden rule: 6 days, frozen scope
 
-Critério para qualquer dúvida: **isso aparece no vídeo de demo ou nos testes que provam a demo?** Se não, não entra.
+The test for any doubt: **does this appear in the demo video, or in the tests that prove the
+demo?** If not, it does not go in.
 
-A demo tem exatamente cinco momentos:
+The demo has exactly five moments:
 
-1. O fornecedor sela uma fatura (só o hash vai on-chain).
-2. O comprador atesta que a fatura é real e devida.
-3. O **Financiador A** consulta, vê "livre" e trava a fatura.
-4. O **Financiador B** tenta travar a mesma fatura e é **rejeitado**, vendo "já financiada por A em DD/MM".
-5. Alguém tenta selar a mesma fatura digitada de outro jeito (minúsculas, espaços) e é **rejeitado**.
+1. The supplier seals an invoice (only the hash goes on-chain).
+2. The buyer attests that the invoice is real and due.
+3. **Lender A** checks, sees "free" and locks the invoice.
+4. **Lender B** tries to lock the same invoice and is **rejected**, seeing "already financed by A
+   on DD/MM".
+5. Someone tries to seal the same invoice typed differently (lowercase, spaces) and is
+   **rejected**.
 
-Os momentos 4 e 5 vendem o projeto e não podem falhar no vídeo.
+Moments 4 and 5 sell the project and must not fail in the video.
 
-## 3. Stack técnica
+## 3. Technical stack
 
-| Camada | Escolha | Por quê |
+| Layer | Choice | Why |
 |---|---|---|
-| Programa on-chain | Rust + Anchor (versão estável atual — confira, não fixe de memória) | Padrão do ecossistema; o IDL gera o cliente TS. |
-| Testes | Testes TypeScript do Anchor no validador local (ou LiteSVM se o setup for rápido) | Iteração em segundos. |
-| SDK | `packages/sdk` em TypeScript: hash canônico, cliente do programa, função `checkInvoice()` | É o que um financiador integra. Faz parte do produto, não é detalhe. |
-| Frontend | Next.js (App Router, TypeScript) no Vercel Hobby | Gratuito, deploy em minutos. |
-| Carteira | Wallet Standard + `@solana/react` (Phantom) | Signers do `@solana/kit` direto nos builders do SDK; o Wallet Adapter clássico exigiria web3.js v1 (decidido em 06/10). |
-| RPC | Helius devnet (free tier) | A RPC pública da devnet sofre limite de taxa na hora errada. |
-| Token de taxa | Mint de teste `USDC-dev` (6 decimais) criado por script | Para cobrar a taxa de travamento na demo. Rotulado como teste em toda a UI. |
+| On-chain program | Rust + Anchor (current stable version; check it, do not pin it from memory) | Ecosystem standard; the IDL generates the TS client. |
+| Tests | Anchor TypeScript tests on the local validator (or LiteSVM if the setup is quick) | Iteration in seconds. |
+| SDK | `packages/sdk` in TypeScript: canonical hash, program client, `checkInvoice()` | It is what a lender integrates. Part of the product, not a detail. |
+| Frontend | Next.js (App Router, TypeScript) on Vercel Hobby | Free, deploys in minutes. |
+| Wallet | Wallet Standard + `@solana/react` (Phantom) | `@solana/kit` signers go straight into the SDK builders; the classic Wallet Adapter would require web3.js v1 (decided on 06 Oct). |
+| RPC | Helius devnet (free tier) | The public devnet RPC rate-limits at the worst moment. |
+| Fee token | Test mint `USDC-dev` (6 decimals) created by a script | To charge the lock fee in the demo. Labelled as a test token across the UI. |
 
-## 4. Contas do programa (Anchor)
+## 4. Program accounts (Anchor)
 
-Todas as PDAs guardam o `bump`. Valores em `u64` (unidades mínimas), cálculos intermediários em `u128` com `checked_*`.
+Every PDA stores its `bump`. Amounts are `u64` (minor units); intermediate calculations use `u128`
+with `checked_*`.
 
-| Conta | Seeds | Campos principais |
+| Account | Seeds | Main fields |
 |---|---|---|
-| `Config` | `["config"]` | `admin`, `treasury`, `fee_mint`, `lock_fee` (valor fixo por travamento), `paused`, `bump` |
-| `Lender` | `["lender", lender_pubkey]` | `name` (até 32 bytes), `active`, `locks_count` |
-| `Buyer` | `["buyer", tax_id_hash]` | `authority` (carteira ou vault multisig), `tax_id_hash = sha256("v1\|party\|" + id fiscal canônico)`, `name`, `active`, `verified_at` |
-| `Seal` | `["seal", invoice_hash]` | `invoice_hash`, `supplier`, `buyer`, `face_amount`, `currency` (3 bytes ISO 4217), `due_ts`, `status`, `buyer_attested`, `lender`, `locked_at`, `created_at`, `bump` |
+| `Config` | `["config"]` | `admin`, `treasury`, `fee_mint`, `lock_fee` (flat amount per lock), `paused`, `bump` |
+| `Lender` | `["lender", lender_pubkey]` | `name` (up to 32 bytes), `active`, `locks_count` |
+| `Buyer` | `["buyer", tax_id_hash]` | `authority` (wallet or multisig vault), `tax_id_hash = sha256("v1\|party\|" + canonical tax ID)`, `name`, `active`, `verified_at` |
+| `Seal` | `["seal", invoice_hash]` | `invoice_hash`, `supplier`, `buyer`, `face_amount`, `currency` (3 bytes, ISO 4217), `due_ts`, `status`, `buyer_attested`, `lender`, `locked_at`, `created_at`, `bump` |
 
-`status`: `Sealed → Locked → Released`, ou `Sealed → Cancelled`. `buyer_attested` é uma flag independente que só o comprador liga. Nenhuma outra transição é válida.
+`status`: `Sealed → Locked → Released`, or `Sealed → Cancelled`. `buyer_attested` is an
+independent flag that only the buyer sets. No other transition is valid.
 
-## 5. Hash canônico: o que faz o "uma vez só" funcionar
+## 5. Canonical hash: what makes "only once" work
 
-Duas pessoas registrando a mesma fatura precisam chegar ao mesmo hash. A normalização é especificada, versionada e testada:
+Two people registering the same invoice must reach the same hash. The normalization is specified,
+versioned and tested:
 
 ```
-v1|<id fiscal do comprador, só letras e dígitos, maiúsculas>|<id fiscal do fornecedor, idem>|<número da fatura, trim + maiúsculas + espaços internos removidos>|<valor em unidades mínimas, inteiro>|<moeda ISO 4217>|<vencimento AAAA-MM-DD>
+v1|<buyer tax ID, letters and digits only, uppercase>|<supplier tax ID, same>|<invoice number, trimmed + uppercase + inner spaces removed>|<amount in minor units, integer>|<ISO 4217 currency>|<due date YYYY-MM-DD>
 ```
 
-`invoice_hash = sha256(string acima, UTF-8)`.
+`invoice_hash = sha256(string above, UTF-8)`.
 
-- O prefixo `v1|` permite evoluir o formato sem colidir com hashes antigos.
-- **Não salgar o hash:** um sal por usuário impediria dois financiadores de detectarem a mesma fatura, que é o objetivo.
-- **Limitações (estão no README e no pitch se perguntarem):** identificadores fiscais têm pouca entropia, então o hash não é sigilo forte contra quem já conhece as partes. O Selo só detecta duplicidade **entre quem consulta o registro** — por isso o valor cresce com cada financiador que adere. O selo não substitui o contrato de cessão.
-- On-chain só vão `face_amount`, `currency` e `due_ts` em claro (necessários para o financiador decidir); nada de nomes, descrições ou documentos.
+- The `v1|` prefix lets the format evolve without colliding with old hashes.
+- **Do not salt the hash:** a per-user salt would stop two lenders from detecting the same
+  invoice, which is the whole point.
+- **Limitations (they are in the README, and in the pitch if asked):** tax IDs have little
+  entropy, so the hash is not strong secrecy against someone who already knows the parties. Selo
+  only detects duplicates **among those who check the registry**, which is why its value grows
+  with every lender that joins. The seal does not replace the assignment contract.
+- Only `face_amount`, `currency` and `due_ts` go on-chain in clear (a lender needs them to
+  decide); no names, descriptions or documents.
 
-## 6. Instruções
+## 6. Instructions
 
-| # | Instrução | Quem assina | Verificações essenciais |
+| # | Instruction | Signer | Essential checks |
 |---|---|---|---|
-| 1 | `initialize` | admin | `lock_fee` dentro de limite; mint com 6 decimais |
-| 2 | `register_lender(name)` / `set_lender_active` | admin | nome não vazio |
-| 2b | `register_buyer(tax_id_hash, name)` / `set_buyer_active` | admin (verificador KYB na devnet) | nome não vazio; um `Buyer` por id fiscal (a PDA é a unicidade) |
-| 3 | `seal_invoice(hash, buyer, face, currency, due_ts)` | fornecedor | `init` da PDA (**a duplicata falha aqui**); `face > 0`; `due_ts` no futuro; não pausado |
-| 4 | `attest_invoice` | comprador | `Seal.buyer == signer`; estado `Sealed` ou `Locked`; **`Buyer` do signer ativo** |
-| 5 | `lock_invoice` | financiador | financiador registrado e ativo; estado `Sealed`; **`buyer_attested == true`**; **`Buyer` derivado do id fiscal da fatura tem `authority == Seal.buyer` e está ativo**; cobra `lock_fee` em `fee_mint` para `treasury`; grava `lender` e `locked_at` |
-| 6 | `release_invoice` | o mesmo financiador | estado `Locked`; `Seal.lender == signer` (marca a fatura como paga/encerrada) |
-| 7 | `cancel_seal` | fornecedor | só em `Sealed` |
+| 1 | `initialize` | admin | `lock_fee` within a limit; mint with 6 decimals |
+| 2 | `register_lender(name)` / `set_lender_active` | admin | name not empty |
+| 2b | `register_buyer(tax_id_hash, name)` / `set_buyer_active` | admin (KYB verifier on devnet) | name not empty; one `Buyer` per tax ID (the PDA is the uniqueness) |
+| 3 | `seal_invoice(hash, buyer, face, currency, due_ts)` | supplier | `init` of the PDA (**the duplicate fails here**); `face > 0`; `due_ts` in the future; not paused |
+| 4 | `attest_invoice` | buyer | `Seal.buyer == signer`; status `Sealed` or `Locked`; **the signer's `Buyer` is active** |
+| 5 | `lock_invoice` | lender | lender registered and active; status `Sealed`; **`buyer_attested == true`**; **the `Buyer` derived from the invoice's tax ID has `authority == Seal.buyer` and is active**; charges `lock_fee` in `fee_mint` to `treasury`; records `lender` and `locked_at` |
+| 6 | `release_invoice` | the same lender | status `Locked`; `Seal.lender == signer` (marks the invoice as paid/closed) |
+| 7 | `cancel_seal` | supplier | only in `Sealed` |
 | 8 | `set_paused` | admin | — |
 
-Quando `lock_invoice` falha por estado `Locked`, o erro customizado precisa carregar informação útil e o SDK precisa traduzi-lo: "já financiada por <nome do financiador> em <data>".
+When `lock_invoice` fails because the status is `Locked`, the custom error must carry useful
+information, and the SDK must translate it: "already financed by <lender name> on <date>".
 
-Emita um evento Anchor por instrução de estado (`InvoiceSealed`, `InvoiceAttested`, `InvoiceLocked`, `InvoiceReleased`, `InvoiceCancelled`). Uma tentativa rejeitada não gera evento, porque a transação falha inteira; ela aparece só na tela e no log do SDK.
+Emit an Anchor event for each state instruction (`InvoiceSealed`, `InvoiceAttested`,
+`InvoiceLocked`, `InvoiceReleased`, `InvoiceCancelled`). A rejected attempt emits no event,
+because the whole transaction fails; it appears only on screen and in the SDK log.
 
 ## 7. SDK (`packages/sdk`)
 
-- `canonicalize(invoice)` e `invoiceHash(invoice)` — puras, com vetores de teste.
-- `checkInvoice(connection, invoice | hash)` → `{ status: 'free' | 'sealed' | 'locked' | 'released' | 'cancelled', lender?, lockedAt?, attested }`. **É a chamada que um financiador coloca no fluxo de crédito; o pitch mostra ela.**
-- Builders das instruções da Seção 6 e tradução de erros do programa para mensagens legíveis.
+- `canonicalize(invoice)` and `invoiceHash(invoice)`: pure, with test vectors.
+- `checkInvoice(connection, invoice | hash)` → `{ status: 'free' | 'sealed' | 'locked' |
+  'released' | 'cancelled', lender?, lockedAt?, attested }`. **It is the call a lender puts in
+  its credit flow; the pitch shows it.**
+- Builders for the instructions in Section 6, and translation of program errors into readable
+  messages.
 
-## 8. Frontend (quatro telas)
+## 8. Frontend (four screens)
 
-| Rota | Quem usa | O que faz |
+| Route | Used by | What it does |
 |---|---|---|
-| `/fornecedor` | fornecedor | formulário da fatura → hash calculado no navegador → selar; lista dos seus selos |
-| `/comprador` | comprador | faturas seladas contra ele → "Atestar" |
-| `/financiador` | financiador | cola os dados da fatura → consulta → "Financiar (travar)". Na demo, duas carteiras: Financiador A e Financiador B |
-| `/verificar` | qualquer pessoa | dados ou hash → estado público da fatura. Página do registro aberto |
+| `/fornecedor` | supplier | invoice form → hash computed in the browser → seal; list of their seals |
+| `/comprador` | buyer | invoices sealed against them → "Attest" |
+| `/financiador` | lender | paste the invoice data → check → "Finance (lock)". In the demo, two wallets: Lender A and Lender B |
+| `/verificar` | anyone | data or hash → public state of the invoice. The open registry page |
 
-Faixa "Devnet — tokens de teste" em todas as telas. Nenhum erro cru do Anchor aparece para o usuário.
+A "Devnet — test tokens" banner on every screen. No raw Anchor error is shown to the user.
 
-## 9. Modelo de negócio (para o pitch e o README)
+## 9. Business model (for the pitch and the README)
 
-- Receita: **taxa por fatura travada**, paga pelo financiador. Na demo é um valor fixo em `USDC-dev`.
-- Premissa de preço (não é dado de mercado): 5 pontos-base do valor de face por travamento.
-- Referência de tamanho: o factoring global movimentou cerca de €4,04 trilhões em 2025 (FCI). Se 1% desse volume passar pelo Selo a 5 bps, são cerca de €20 milhões por ano.
-- Por que o financiador paga: a taxa custa menos que uma única perda por dupla cessão, e o registro fica mais valioso a cada financiador que adere (efeito de rede).
+- Revenue: **a fee per locked invoice**, paid by the lender. In the demo it is a flat amount in
+  `USDC-dev`.
+- Pricing assumption (not market data): 5 basis points of face value per lock.
+- Size reference: global factoring moved about €4.04 trillion in 2025 (FCI). If 1% of that volume
+  went through Selo at 5 bps, that is about €20 million a year.
+- Why the lender pays: the fee costs less than a single loss to double assignment, and the
+  registry becomes more valuable with every lender that joins (network effect).
 
-## 10. Regras fixas (não reabrir sem motivo novo)
+## 10. Fixed rules (do not reopen without a new reason)
 
-- **Nunca mainnet, nunca dinheiro real, nunca prometer rendimento.**
-- **Sem token próprio, sem pool, sem empréstimo.** Se surgir a tentação de "adicionar um pool", releia a Seção 1.
-- **Nenhuma chave privada no repositório.** `.gitignore` cobre keypairs (`*.json` fora de `target/idl`), `.env*`, `node_modules`, `target`.
-- **Repositório público** (open-source é critério de avaliação da Colosseum).
-- **Sem push automático na `main` e sem modo de permissões irrestrito** neste projeto: trabalhe numa branch e faça merge quando os testes passarem.
-- O projeto é global: nenhuma jurisdição específica é citada no produto, no README ou no pitch.
+- **Never mainnet, never real money, never promise yield.**
+- **No token of our own, no pool, no lending.** If the temptation to "add a pool" comes up,
+  reread Section 1.
+- **No private key in the repository.** `.gitignore` covers keypairs (`*.json` outside
+  `target/idl`), `.env*`, `node_modules`, `target`.
+- **Public repository** (open source is a Colosseum judging criterion).
+- **No automatic push to `main` and no unrestricted permission mode** in this project: work on a
+  branch and merge when the tests pass.
+- The project is global: no specific jurisdiction is named in the product, the README or the
+  pitch.
 
-## 11. Testes obrigatórios antes do vídeo
+## 11. Required tests before the video
 
-1. Selar a mesma fatura duas vezes → falha, inclusive com formatação diferente.
-2. Financiador B travando fatura já travada por A → falha com erro traduzível.
-3. Travar sem atestação do comprador → falha.
-4. Assinante errado em cada instrução → falha.
-5. `release_invoice` só pelo financiador que travou.
-6. Taxa de travamento chega à `treasury` com o valor exato.
-7. Financiador inativo não trava; pausa bloqueia selar e travar.
-8. Vetores do hash canônico em `packages/sdk`.
-9. Comprador não verificado ou revogado não atesta; travar falha se quem atestou não é a empresa verificada da fatura (`BuyerMismatch`).
+1. Sealing the same invoice twice → fails, including with different formatting.
+2. Lender B locking an invoice already locked by A → fails with a translatable error.
+3. Locking without the buyer's attestation → fails.
+4. Wrong signer on each instruction → fails.
+5. `release_invoice` only by the lender that locked.
+6. The lock fee reaches the `treasury` with the exact amount.
+7. An inactive lender cannot lock; the pause blocks sealing and locking.
+8. Canonical hash vectors in `packages/sdk`.
+9. An unverified or revoked buyer cannot attest; locking fails if the attester is not the verified
+   company on the invoice (`BuyerMismatch`).
 
-**Invariante:** contas `Seal` nunca são fechadas. Fechar um selo `Released` ou `Cancelled` para recuperar o aluguel apagaria a PDA e permitiria selar e financiar a mesma fatura de novo.
+**Invariant:** `Seal` accounts are never closed. Closing a `Released` or `Cancelled` seal to
+reclaim rent would delete the PDA and allow the same invoice to be sealed and financed again.
 
-## 12. Estrutura de pastas
+## 12. Folder structure
 
 ```
-programs/selo/   # programa Anchor
-packages/sdk/    # hash canônico, checkInvoice, cliente
+programs/selo/   # Anchor program
+packages/sdk/    # canonical hash, checkInvoice, client
 app/             # Next.js
-scripts/         # mint USDC-dev, initialize, registrar financiadores, semear demo
-tests/           # testes do programa
-docs/            # pitch.md, prompts.md, roteiro da demo
+scripts/         # USDC-dev mint, initialize, register lenders, seed the demo
+tests/           # program tests
+docs/            # pitch.md, prompts.md, demo script
 ```
 
-## 13. Materiais de submissão
+## 13. Submission materials
 
-- Pitch em vídeo de no máximo 3 minutos (`docs/pitch.md`).
-- Vídeo técnico com os cinco momentos da Seção 2, se o formulário pedir.
-- README: o problema em 3 linhas, como rodar, Program ID na devnet, link do app, exemplo de uso do `checkInvoice()` e as limitações da Seção 5.
-- Conferir no formulário as regras de elegibilidade antes de submeter.
+- Pitch video of at most 3 minutes (`docs/pitch.md`).
+- Technical video with the five moments of Section 2, if the form asks for it.
+- README: the problem in 3 lines, how to run it, the devnet Program ID, the app link, a usage
+  example of `checkInvoice()` and the limitations from Section 5.
+- Check the eligibility rules on the form before submitting.

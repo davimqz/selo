@@ -1,73 +1,73 @@
-# Prompts para o Claude Code — Selo
+# Claude Code prompts — Selo
 
-Use na ordem. Todos assumem `CLAUDE.md` e `TASKS.md` na raiz do repositório.
-
----
-
-## Prompt 1 — Adaptar o projeto que já existe (use primeiro se você já começou algo)
-
-```
-Leia CLAUDE.md e TASKS.md inteiros antes de qualquer coisa. Eles definem o projeto
-a partir de agora: o Selo é um REGISTRO de faturas, não um financiador (sem pool,
-sem empréstimo).
-
-Este repositório já tem código de uma versão anterior. Não apague, mova nem
-reescreva nada ainda. Faça só isto:
-
-1. Crie a branch `dev` a partir do estado atual e trabalhe nela.
-2. Liste o que existe: programas Anchor, contas, instruções, testes, pacotes,
-   telas, scripts e dependências, com as versões instaladas.
-3. Para cada item, classifique em uma tabela:
-   - MANTER (já serve ao CLAUDE.md como está)
-   - ADAPTAR (serve com mudanças; diga quais)
-   - REMOVER (contradiz o CLAUDE.md, ex.: pool, LP, cálculo de adiantamento)
-   - FALTA (exigido pelo CLAUDE.md e inexistente)
-4. Aponte qualquer chave privada, .env ou keypair commitado no histórico.
-5. Diga quais tarefas do TASKS.md já estão cumpridas pelo código existente e em
-   que dia do plano estamos de fato.
-6. Proponha a ordem das mudanças, a menor possível, para chegar ao critério de
-   pronto do dia atual.
-
-Pare e espere minha aprovação antes de editar qualquer arquivo.
-```
+The prompts used to build Selo with Claude Code. Use them in order. They all assume `CLAUDE.md` and
+`TASKS.md` at the root of the repository.
 
 ---
 
-## Prompt 2 — Começar do zero (use se não houver código)
+## Prompt 1 — Adapt the existing project (use first if you have already started something)
 
 ```
-Leia CLAUDE.md e TASKS.md inteiros. Estamos no Dia 0. Trabalhe na branch `dev`.
-Execute as tarefas do Dia 0 em ordem, uma por vez, rodando build e testes depois
-de cada uma. Não comece o Dia 1 até o critério de pronto do Dia 0 passar.
-Se algo no CLAUDE.md estiver desatualizado (versão do Anchor, comando que mudou,
-API do Wallet Adapter), pare e me diga antes de seguir.
+Read CLAUDE.md and TASKS.md in full before anything else. From now on they define
+the project: Selo is an invoice REGISTRY, not a lender (no pool, no lending).
+
+This repository already has code from a previous version. Do not delete, move or
+rewrite anything yet. Do only this:
+
+1. Create the `dev` branch from the current state and work on it.
+2. List what exists: Anchor programs, accounts, instructions, tests, packages,
+   screens, scripts and dependencies, with the installed versions.
+3. Classify each item in a table:
+   - KEEP (already serves CLAUDE.md as it is)
+   - ADAPT (serves with changes; say which)
+   - REMOVE (contradicts CLAUDE.md, e.g. pool, LP, advance calculation)
+   - MISSING (required by CLAUDE.md and absent)
+4. Point out any private key, .env or keypair committed in the history.
+5. Say which TASKS.md tasks the existing code already covers, and which day of
+   the plan we are actually on.
+6. Propose the order of changes, as small as possible, to reach the current
+   day's definition of done.
+
+Stop and wait for my approval before editing any file.
 ```
 
 ---
 
-## Prompt 3 — Executar um dia do plano (use a cada dia)
+## Prompt 2 — Start from scratch (use if there is no code)
 
 ```
-Leia CLAUDE.md e a seção do Dia [N] do TASKS.md. Execute as tarefas desse dia em
-ordem. Depois de cada tarefa: rode os testes, marque [x] no TASKS.md e me diga
-em uma linha o que mudou. Se uma tarefa travar por mais de 45 minutos, pare,
-explique o bloqueio e sugira qual corte pré-aprovado do TASKS.md aplicar.
-No fim do dia, rode o critério de pronto e me mostre o resultado real.
+Read CLAUDE.md and TASKS.md in full. We are on Day 0. Work on the `dev` branch.
+Do the Day 0 tasks in order, one at a time, running the build and the tests after
+each one. Do not start Day 1 until Day 0's definition of done passes.
+If anything in CLAUDE.md is out of date (Anchor version, a command that changed,
+the Wallet Adapter API), stop and tell me before moving on.
 ```
 
 ---
 
-## Prompt 4 — Revisão antes de gravar (Dia 4)
+## Prompt 3 — Run one day of the plan (use every day)
 
 ```
-Atue como um jurado técnico da Colosseum revisando este repositório pela primeira
-vez. Sem editar nada:
-1. Rode os testes e o fluxo dos cinco momentos do CLAUDE.md Seção 2 contra a
-   devnet e diga o que falhou.
-2. Leia o README como alguém de fora: em 60 segundos dá para entender o problema,
-   rodar o projeto e ver o checkInvoice()?
-3. Procure segredos commitados e erros crus do Anchor aparecendo na UI.
-4. Liste as 5 perguntas mais difíceis que um jurado faria e se o README ou o
-   pitch já respondem cada uma.
-Entregue uma lista priorizada do que corrigir em menos de 4 horas.
+Read CLAUDE.md and the Day [N] section of TASKS.md. Do that day's tasks in order.
+After each task: run the tests, tick [x] in TASKS.md and tell me in one line what
+changed. If a task is stuck for more than 45 minutes, stop, explain the blocker
+and suggest which pre-approved cut from TASKS.md to apply.
+At the end of the day, run the definition of done and show me the real result.
+```
+
+---
+
+## Prompt 4 — Review before recording (Day 4)
+
+```
+Act as a Colosseum technical judge reviewing this repository for the first time.
+Without editing anything:
+1. Run the tests and the five-moment flow from CLAUDE.md Section 2 against
+   devnet, and say what failed.
+2. Read the README as an outsider: in 60 seconds, can you understand the
+   problem, run the project and see checkInvoice()?
+3. Look for committed secrets and raw Anchor errors showing up in the UI.
+4. List the 5 hardest questions a judge would ask, and whether the README or the
+   pitch already answers each one.
+Deliver a prioritized list of what to fix in under 4 hours.
 ```

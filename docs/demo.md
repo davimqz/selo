@@ -1,135 +1,149 @@
-# Roteiro da demo — Selo na devnet
+# Demo guide: Selo on devnet
 
-Os cinco momentos do `CLAUDE.md` Seção 2, rodando no navegador contra a devnet.
-Nada aqui usa dinheiro real: SOL de devnet e `USDC-dev` são tokens de teste.
+The five demo moments from the [project brief](../CLAUDE.md#2-golden-rule-6-days-frozen-scope),
+running in the browser against devnet. Nothing here uses real money: devnet SOL and `USDC-dev`
+are test tokens.
 
-## Estado atual da devnet
+> **Just want to see it work?** No wallet needed: open
+> [`/verificar`](https://selo-iota-three.vercel.app/verificar), choose **Invoice hash** and paste
+> `987403bcf71b7cb4655aeb1bd500703888890f56eea9cf36411e9b9786c0c90c`, an invoice already financed
+> by Lender A on devnet.
+
+## Current devnet state
 
 | | |
 |---|---|
 | Program ID | `4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio` |
-| Upgrade authority / admin | `HERNv3AsBwEkM6Zv5yLnuezpVpusLH8pxkP6U58iJiYW` (keypair em `~/.config/solana/id.json` no WSL) |
-| Mint `USDC-dev` | `Gj8cs9urnjgy29Nz3k5EQNrJZLbapCDSi55X4SU4xAqv` |
-| Taxa de travamento | 1 `USDC-dev` |
+| Upgrade authority / admin | `HERNv3AsBwEkM6Zv5yLnuezpVpusLH8pxkP6U58iJiYW` |
+| `USDC-dev` mint | `Gj8cs9urnjgy29Nz3k5EQNrJZLbapCDSi55X4SU4xAqv` |
+| Lock fee | 1 `USDC-dev` |
+| Verified demo buyer | **Demo Buyer Inc.**, tax ID `US 94-1081436` |
 
-Carteiras da demo (registradas pelo `seed-demo`):
+Demo wallets (registered by `seed-demo`):
 
-| Papel | Endereço |
+| Role | Address |
 |---|---|
-| Fornecedor | `FsCADJoZuEzBc1CL2sq6vabDiJCMinFjUbpgGwHsLmx1` |
-| Comprador | `HEASFybTa9mAU1Hq5HCWBJkoAj2tkMq1icJKMiSfff1H` |
+| Supplier | `FsCADJoZuEzBc1CL2sq6vabDiJCMinFjUbpgGwHsLmx1` |
+| Buyer | `HEASFybTa9mAU1Hq5HCWBJkoAj2tkMq1icJKMiSfff1H` |
 | Lender A | `9KHvoV6iuvNrCY7cjgYctSNhCLs9Y6hMt9xuAo5YgRtS` |
 | Lender B | `42GWhAZrqCAXzdGT6PwjbkLtoBniq81qJkU6hNeLt33B` |
 
-As chaves privadas ficam só em `scripts/wallets/demo/` (ignorado pelo git),
-com o arquivo `PHANTOM-IMPORT.txt` pronto para importar. Nunca commitar.
+The private keys live only in `scripts/wallets/demo/` (git-ignored), with a `PHANTOM-IMPORT.txt`
+ready to import. Never commit them. To run the demo on your own registry, generate your own
+wallets and pass their addresses to `seed-demo`.
 
-## 1. Preparar (uma vez)
+## 1. Set up (once)
 
-1. **RPC:** `.env` com `RPC_URL=<URL devnet da Helius>` e `app/.env.local` com
-   `NEXT_PUBLIC_RPC_URL=<mesma URL>`. Modelo em `.env.example`. A RPC pública da
-   devnet devolve HTTP 429 no meio da demo — sempre usar a Helius.
-2. **Phantom:** para cada carteira de `PHANTOM-IMPORT.txt`, *Adicionar conta →
-   Importar chave privada*, com os nomes Supplier, Buyer, Lender A, Lender B.
-   Em *Configurações → Configurações de desenvolvedor*, ativar o modo testnet e
-   escolher **Solana Devnet**.
-3. **Fundos:** `seed-demo` é idempotente; rodar antes de cada gravação repõe SOL
-   (0,1 por carteira) e `USDC-dev` (1.000 por financiador):
+1. **RPC.** Put `RPC_URL=<Helius devnet URL>` in `.env` and `NEXT_PUBLIC_RPC_URL=<same URL>` in
+   `app/.env.local`; the template is `.env.example`. The public devnet RPC returns HTTP 429 in the
+   middle of a demo, so always use Helius.
+2. **Phantom.** Import each wallet from `PHANTOM-IMPORT.txt` with *Add account → Import private
+   key*, naming them Supplier, Buyer, Lender A and Lender B. In *Settings → Developer settings*,
+   turn on testnet mode and choose **Solana Devnet**.
+3. **Funds.** `seed-demo` is idempotent. Running it before each recording tops up SOL (0.1 per
+   wallet) and `USDC-dev` (1,000 per lender):
 
    ```bash
-   LENDER_A=<A> LENDER_B=<B> SUPPLIER=<fornecedor> BUYER=<comprador> pnpm seed-demo
+   LENDER_A=<A> LENDER_B=<B> SUPPLIER=<supplier> BUYER=<buyer> pnpm seed-demo
    ```
 
-4. **Checagem automática:** `pnpm e2e-demo 3` roda os cinco momentos 3 vezes
-   pelo mesmo código de transação do app, com carteiras próprias
-   ("E2E Lender A/B"). Se passar, a devnet e a RPC estão boas.
+4. **Automatic check.** `pnpm e2e-demo 3` runs the five moments three times through the app's own
+   transaction code, with its own wallets ("E2E Lender A/B"). If it passes, devnet and the RPC are
+   healthy.
 
-## 2. Subir o app
+## 2. Start the app
 
 ```bash
 cd app
-npx next build && npx next start -p 3000   # mais leve que `next dev`
+npx next build && npx next start -p 3000   # lighter than `next dev`
 ```
 
-Abrir http://localhost:3000. A faixa "Devnet — test tokens only" deve aparecer
-no topo. Para trocar de papel: trocar a conta na Phantom e, no app, *Connect
-wallet → Reconnect*.
+Open http://localhost:3000, or use the deployed app at
+[selo-iota-three.vercel.app](https://selo-iota-three.vercel.app). The "Devnet — test tokens only"
+banner must be at the top. To switch roles, switch the account in Phantom and, in the app, choose
+*Connect wallet → Reconnect*.
 
-## 3. Os cinco momentos
+## 3. The five moments
 
-Use um número de fatura novo a cada rodada (`INV-2026-0043`, `0044`, …): uma
-fatura selada fica no registro para sempre — é esse o ponto.
+Use a new invoice number for each run (`INV-2026-0043`, `0044`, …). A sealed invoice stays in the
+registry forever, which is the point.
 
-1. **Fornecedor sela** — conta *Supplier*, `/fornecedor`. *Fill the example
-   invoice*, trocar o número, colar o endereço do comprador, **Seal invoice**.
-   Mostrar a forma canônica e o hash calculados no navegador: só o hash vai
-   on-chain.
-2. **Comprador atesta** — conta *Buyer*, `/comprador`. O cartão *Verified
-   identity* mostra **Demo Buyer Inc.** (comprador verificado pelo
-   `seed-demo` para o id fiscal `US 94-1081436`, o da fatura de exemplo). A
-   fatura aparece na lista; **Attest**. Use sempre esse id fiscal do
-   comprador: com outro, a tela do financiador mostra "not verified" e o
-   travamento falha.
-3. **Financiador A trava** — conta *Lender A*, `/financiador`. Digitar os
-   dados da fatura (pelo hash só dá para consultar; para travar, o programa
-   confere o comprador contra o id fiscal da fatura), **Check registry**:
-   "Sealed — not financed", *Buyer identity: Verified: Demo Buyer Inc.*,
-   *Buyer attested: Yes*. **Finance (lock invoice)**.
-4. **Financiador B é rejeitado** — conta *Lender B*, mesma tela, mesma fatura.
-   O status já mostra "Financed by Lender A". Clicar **Finance** mesmo assim:
-   carimbo vermelho *"Rejected by the Selo program — Already financed by
-   Lender A on DD Mon AAAA. It cannot be financed twice."* A carteira nem chega
-   a pedir assinatura: o app simula a transação no programa antes.
-5. **Duplicata redigitada é rejeitada** — conta *Supplier*, `/fornecedor`.
-   Mesma fatura em minúsculas e com espaços (`de 811 907 980`,
-   ` inv-2026-0043 `). O hash é idêntico; **Seal** → *"This invoice is already
-   registered in Selo. It cannot be registered twice."*
+1. **The supplier seals.** Account *Supplier*, `/fornecedor`.
+   - Click *Fill the example invoice*, change the number, paste the buyer's address, then
+     **Seal invoice**.
+   - Show the canonical form and the hash computed in the browser: only the hash goes on-chain.
+2. **The buyer attests.** Account *Buyer*, `/comprador`.
+   - The *Verified identity* card shows **Demo Buyer Inc.**, the buyer that `seed-demo` verified
+     for tax ID `US 94-1081436` (the one in the example invoice).
+   - The invoice appears in the list; click **Attest**.
+   - Always use this buyer tax ID. With another one, the lender screen shows "not verified" and
+     the lock fails.
+3. **Lender A locks.** Account *Lender A*, `/financiador`.
+   - Type the invoice data and click **Check registry**. A hash is enough to look an invoice up,
+     but locking needs the data, because the program checks the buyer against the tax ID on the
+     invoice.
+   - The screen shows "Sealed — not financed", *Buyer identity: Verified: Demo Buyer Inc.* and
+     *Buyer attested: Yes*.
+   - Click **Finance (lock invoice)**.
+4. **Lender B is rejected.** Account *Lender B*, same screen, same invoice.
+   - The status already reads "Financed by Lender A". Click **Finance** anyway.
+   - The red stamp appears: *"Rejected by the Selo program — Already financed by Lender A on DD
+     Mon YYYY. It cannot be financed twice."*
+   - The wallet never asks for a signature, because the app simulates the transaction against the
+     program first.
+5. **A retyped duplicate is rejected.** Account *Supplier*, `/fornecedor`.
+   - Enter the same invoice in lowercase and with spaces (`de 811 907 980`, ` inv-2026-0043 `).
+   - The hash is identical, so **Seal** returns *"This invoice is already registered in Selo. It
+     cannot be registered twice."*
 
-Opcional para o vídeo: `/verificar` mostra o mesmo estado sem carteira, e o
-link *seal account ↗* abre a conta no Solana Explorer.
+Optional for the video: `/verificar` shows the same state without a wallet, and the *seal
+account ↗* link opens the account in Solana Explorer.
 
-## Modo demo (sem Phantom)
+## Demo mode (no Phantom)
 
-Para gravar sem trocar de conta na Phantom. O app continua o mesmo e as
-transações são reais na devnet; só a assinatura muda: o navegador assina com as
-carteiras de `scripts/wallets/demo`.
+Demo mode lets you record without switching accounts in Phantom. The app stays the same and the
+transactions are real devnet transactions; only the signing changes, as the browser signs with
+the wallets in `scripts/wallets/demo`.
 
-1. Em `app/.env.local`, acrescentar `SELO_DEMO_MODE=1`.
-2. `pnpm --filter app demo` (faz o build e sobe em http://localhost:3000, só no
-   127.0.0.1).
-3. Na faixa roxa "Demo mode", escolher **Supplier**. Ao trocar de tela, o papel
-   acompanha: `/comprador` assina como Buyer e `/financiador` como Lender A,
-   com o botão **Lender B** ao lado. **My wallet** volta para a Phantom.
+1. Add `SELO_DEMO_MODE=1` to `app/.env.local`.
+2. Run `pnpm --filter app demo`. It builds the app and serves it at http://localhost:3000, bound
+   to 127.0.0.1 only.
+3. In the purple "Demo mode" bar, choose **Supplier**.
+   - The role follows the screen: `/comprador` signs as Buyer, and `/financiador` as Lender A,
+     with a **Lender B** button next to it.
+   - **My wallet** goes back to Phantom.
 
-Atalhos que só aparecem no modo demo:
+Shortcuts that only appear in demo mode:
 
-- `/fornecedor`: **New demo invoice** gera um número novo a cada take, e o
-  endereço do comprador já vem preenchido.
-- `/financiador`: **Use the sealed demo invoice** preenche a última fatura
-  selada.
-- `/fornecedor`, depois de selar: **Same invoice, typed differently** preenche
-  a mesma fatura em minúsculas e com espaços (momento 5).
+- `/fornecedor`: **New demo invoice** generates a fresh number for each take, with the buyer's
+  address already filled in.
+- `/financiador`: **Use the sealed demo invoice** fills in the last sealed invoice.
+- `/fornecedor`, after sealing: **Same invoice, typed differently** fills in the same invoice in
+  lowercase and with spaces (moment 5).
 
-A rota que entrega as chaves (`/api/demo-wallets`) responde 404 sem a flag,
-fora de `localhost` e no Vercel. As chaves nunca entram no repositório nem no
-bundle publicado.
+The route that serves the keys (`/api/demo-wallets`) returns 404 in each of these cases:
+- the flag is not set;
+- the request does not come from `localhost`;
+- the app runs on Vercel.
 
-## Problemas conhecidos
+The keys never enter the repository or the published bundle.
 
-| Sintoma | Causa e solução |
+## Troubleshooting
+
+| Symptom | Cause and fix |
 |---|---|
-| `HTTP error (429): Too Many Requests` | RPC pública da devnet. Usar a Helius em `.env` e `app/.env.local`. |
-| Deploy: `Data writes to account failed: Max retries exceeded` | RPC pública perdeu escritas. Recuperar o SOL do buffer com `solana program close <buffer> --url devnet --bypass-warning` e repetir com `solana program deploy target/deploy/selo.so --program-id target/deploy/selo-keypair.json --url devnet --max-sign-attempts 100 --with-compute-unit-price 50000`. |
-| Servidor do app cai sozinho | Pouca memória no Windows. `wsl --shutdown` (o app não precisa do WSL), fechar abas pesadas, usar `next start` em vez de `next dev`. Se a porta 3000 ficar ocupada, encerrar o processo `node` antigo. |
-| "This wallet has no devnet SOL to pay the network fee." | Rodar `seed-demo` de novo. |
-| `/comprador`: "This wallet is not verified as a company" | A conta conectada não é a *Buyer* da demo, ou o `seed-demo` não rodou depois do upgrade de 10/10. Rodar `seed-demo` com `BUYER=<comprador>`. |
-| Lock: "The buyer on the invoice is not verified" / *not verified* | O id fiscal do comprador digitado não é `US 94-1081436`. |
-| "This lender is not registered in Selo." | A conta conectada não é Lender A/B; conferir a conta na Phantom ou rodar `seed-demo` com o endereço certo. |
-| A Phantom não mostra a transação certa / saldo zero | Phantom fora da devnet: ativar o modo testnet e escolher Solana Devnet. |
+| `HTTP error (429): Too Many Requests` | Public devnet RPC. Use Helius in `.env` and `app/.env.local`. |
+| Deploy: `Data writes to account failed: Max retries exceeded` | The public RPC dropped writes. Recover the buffer's SOL with `solana program close <buffer> --url devnet --bypass-warning`, then retry with `solana program deploy target/deploy/selo.so --program-id target/deploy/selo-keypair.json --url devnet --max-sign-attempts 100 --with-compute-unit-price 50000`. |
+| The app server stops on its own | Low memory on Windows. Run `wsl --shutdown` (the app does not need WSL), close heavy tabs, and use `next start` instead of `next dev`. If port 3000 stays busy, end the old `node` process. |
+| "This wallet has no devnet SOL to pay the network fee." | Run `seed-demo` again. |
+| `/comprador`: "This wallet is not verified as a company" | The connected account is not the demo *Buyer*, or `seed-demo` has not run since the buyer registry was added. Run `seed-demo` with `BUYER=<buyer>`. |
+| Lock: "The buyer on the invoice is not verified" / *not verified* | The buyer tax ID typed is not `US 94-1081436`. |
+| "This lender is not registered in Selo." | The connected account is not Lender A or B. Check the account in Phantom, or run `seed-demo` with the right address. |
+| Phantom shows the wrong transaction or a zero balance | Phantom is not on devnet. Turn on testnet mode and choose Solana Devnet. |
 
-## Segurança
+## Security notes
 
-- A URL da Helius vai para o navegador (`NEXT_PUBLIC_`). Antes do deploy no
-  Vercel, restringir a chave ao domínio do app no painel da Helius.
-- Chaves das carteiras e do deploy nunca entram no repositório (`.gitignore`
-  cobre `wallets/`, `*-keypair.json`, `id.json`, `.env*`).
+- The Helius URL ships to the browser (`NEXT_PUBLIC_`). Restrict the key to the app's domain in the
+  Helius dashboard.
+- Wallet and deploy keys never enter the repository: `.gitignore` covers `wallets/`,
+  `*-keypair.json`, `id.json` and `.env*`.

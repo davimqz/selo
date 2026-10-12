@@ -1,102 +1,104 @@
-# TASKS.md — Plano de Execução (06/10 → 12/10/2026)
+# TASKS.md — Execution plan (06 Oct → 12 Oct 2026)
 
-Organizado por dia: o prazo é a restrição dominante. Marque cada item (`[x]`) ao concluir. Se um dia atrasar, **corte do fim da lista do dia, nunca do critério de pronto**. Regra de decisão: `CLAUDE.md` Seção 2.
-
----
-
-## Dia 0 — Terça 06/10 · Fundação (ou adaptação do que já existe)
-
-- [x] Se já existe código: rodar o prompt "Adaptar o projeto existente" de `docs/prompts.md` e seguir o plano aprovado antes de qualquer outra tarefa.
-- [x] Repositório público no GitHub com as pastas do `CLAUDE.md` Seção 12, trabalhando numa branch (`dev`).
-- [x] Programa Anchor `selo` buildando e `anchor test` rodando (mesmo vazio).
-- [x] `.gitignore` conforme `CLAUDE.md` Seção 10.
-- [x] RPC devnet da Helius em `.env` (nunca commitado) + `.env.example` documentado.
-- [ ] Mandar mensagem para 5-10 pessoas que financiam recebíveis (factorings, fintechs de crédito, protocolos de crédito on-chain, tesourarias): *"Antes de financiar uma fatura, vocês consultariam um registro global que mostra se ela já foi financiada por outro credor?"*
-
-**Critério de pronto**: repositório público, programa buildando, testes rodando.
+Organized by day, because the deadline is the dominant constraint. Tick each item (`[x]`) when it
+is done. If a day slips, **cut from the end of that day's list, never from its definition of
+done**. Decision rule: `CLAUDE.md` Section 2.
 
 ---
 
-## Dia 1 — Quarta 07/10 · Hash canônico + selo
+## Day 0 — Tuesday 06 Oct · Foundation (or adapting what already exists)
 
-- [x] `packages/sdk/src/hash.ts`: `canonicalize` e `invoiceHash` exatamente como no `CLAUDE.md` Seção 5.
-- [x] Vetores de teste do hash (formatações diferentes → mesmo hash; um campo diferente → hash diferente).
-- [x] Contas `Config`, `Lender`, `Seal`; instruções `initialize`, `register_lender`, `set_lender_active`, `seal_invoice`, `cancel_seal`, `set_paused`.
-- [x] Teste 1 do `CLAUDE.md` Seção 11 (selar duas vezes falha).
+- [x] If code already exists: run the "Adapt the existing project" prompt from `docs/prompts.md` and follow the approved plan before any other task.
+- [x] Public GitHub repository with the folders from `CLAUDE.md` Section 12, working on a branch (`dev`).
+- [x] Anchor program `selo` building and `anchor test` running (even if empty).
+- [x] `.gitignore` as in `CLAUDE.md` Section 10.
+- [x] Helius devnet RPC in `.env` (never committed) + documented `.env.example`.
+- [ ] Message 5–10 people who finance receivables (factoring companies, credit fintechs, on-chain credit protocols, treasuries): *"Before financing an invoice, would you check a global registry that shows whether another lender has already financed it?"*
 
-**Critério de pronto**: o teste de selo duplicado passa no validador local.
-
----
-
-## Dia 2 — Quinta 08/10 · Atestação + travamento + SDK
-
-- [x] Script `scripts/create-mint.ts` (`USDC-dev`, 6 decimais) e mint para as carteiras de teste.
-- [x] `attest_invoice`, `lock_invoice` (com cobrança da taxa), `release_invoice`.
-- [x] Erro customizado de "já travada" e tradução no SDK ("já financiada por X em DD/MM").
-- [x] `checkInvoice()` no SDK.
-- [x] Todos os testes do `CLAUDE.md` Seção 11 passando.
-- [x] Eventos Anchor nas instruções de estado.
-
-**Critério de pronto**: os cinco momentos da demo passam como teste automatizado, sem frontend.
+**Definition of done**: public repository, program building, tests running.
 
 ---
 
-## Dia 3 — Sexta 09/10 · Devnet + frontend
+## Day 1 — Wednesday 07 Oct · Canonical hash + seal
 
-- [x] `anchor deploy` na devnet; Program ID no README e no `Anchor.toml`.
-- [x] `scripts/seed-demo.ts` idempotente: initialize, registra "Lender A" e "Lender B", dá `USDC-dev` aos dois.
+- [x] `packages/sdk/src/hash.ts`: `canonicalize` and `invoiceHash` exactly as in `CLAUDE.md` Section 5.
+- [x] Hash test vectors (different formatting → same hash; one different field → different hash).
+- [x] Accounts `Config`, `Lender`, `Seal`; instructions `initialize`, `register_lender`, `set_lender_active`, `seal_invoice`, `cancel_seal`, `set_paused`.
+- [x] Test 1 from `CLAUDE.md` Section 11 (sealing twice fails).
+
+**Definition of done**: the duplicate-seal test passes on the local validator.
+
+---
+
+## Day 2 — Thursday 08 Oct · Attestation + lock + SDK
+
+- [x] Script `scripts/create-mint.ts` (`USDC-dev`, 6 decimals) and minting to the test wallets.
+- [x] `attest_invoice`, `lock_invoice` (charging the fee), `release_invoice`.
+- [x] Custom "already locked" error and its translation in the SDK ("already financed by X on DD/MM").
+- [x] `checkInvoice()` in the SDK.
+- [x] All tests from `CLAUDE.md` Section 11 passing.
+- [x] Anchor events on the state instructions.
+
+**Definition of done**: the five demo moments pass as an automated test, without a frontend.
+
+---
+
+## Day 3 — Friday 09 Oct · Devnet + frontend
+
+- [x] `anchor deploy` to devnet; Program ID in the README and in `Anchor.toml`.
+- [x] Idempotent `scripts/seed-demo.ts`: initialize, register "Lender A" and "Lender B", give both `USDC-dev`.
 - [x] Next.js + Wallet Standard (`@solana/react`) + `packages/sdk`.
-- [x] Telas `/fornecedor`, `/comprador`, `/financiador`, `/verificar`.
-- [x] Mensagens de erro legíveis; faixa "Devnet — tokens de teste".
+- [x] Screens `/fornecedor`, `/comprador`, `/financiador`, `/verificar`.
+- [x] Readable error messages; "Devnet — test tokens" banner.
 
-**Critério de pronto**: os cinco momentos rodam no navegador contra a devnet, três vezes seguidas sem erro.
-
----
-
-## Dia 4 — Sábado 10/10 · Publicar e gravar a demo
-
-- [ ] Deploy no Vercel e teste numa janela anônima com outra carteira.
-- [ ] README completo (`CLAUDE.md` Seção 13), com trecho de código usando `checkInvoice()`.
-- [ ] Atualizar `docs/pitch.md` com a validação real (ou remover a frase de validação).
-- [ ] 8 slides do pitch.
-- [ ] Gravar o vídeo técnico dos cinco momentos.
-
-**Critério de pronto**: app público funcionando e vídeo técnico gravado.
+**Definition of done**: the five moments run in the browser against devnet, three times in a row without errors.
 
 ---
 
-## Dia 5 — Domingo 11/10 · Gravar o pitch e submeter
+## Day 4 — Saturday 10 Oct · Publish and record the demo
 
-- [ ] Reconferir os números do pitch e cronometrar (alvo 2:45).
-- [ ] Gravar o pitch.
-- [ ] Revisar elegibilidade e campos do formulário.
-- [ ] **Submeter hoje.** Merge da `dev` na `main` e congelar.
+- [ ] Deploy to Vercel and test in a private window with another wallet.
+- [x] Complete README (`CLAUDE.md` Section 13), with a code snippet using `checkInvoice()`.
+- [x] Update `docs/pitch.md` with real validation (or remove the validation sentence).
+- [x] 8 pitch slides.
+- [ ] Record the technical video of the five moments.
 
-**Critério de pronto**: submissão confirmada na plataforma.
-
----
-
-## Reserva — Segunda 12/10
-
-- [ ] Só correções que não arrisquem a demo.
+**Definition of done**: public app working and technical video recorded.
 
 ---
 
-## Cortes pré-aprovados (nesta ordem)
+## Day 5 — Sunday 11 Oct · Record the pitch and submit
 
-1. Tela `/comprador` → atestação por script, mostrada no explorer.
-2. `release_invoice` → descrita no README como próxima etapa.
-3. Cobrança da taxa → travamento gratuito na demo, modelo de taxa só no pitch.
-4. Tela `/verificar` → a consulta aparece dentro de `/financiador`.
+- [ ] Recheck the pitch numbers and time it (target 2:45).
+- [ ] Record the pitch.
+- [ ] Review eligibility and the form fields.
+- [ ] **Submit today.** Merge `dev` into `main` and freeze.
 
-**Nunca cortar:** selo duplicado rejeitado, segundo financiador rejeitado, deploy na devnet, `checkInvoice()` no SDK.
+**Definition of done**: submission confirmed on the platform.
 
 ---
 
-## Depois do hackathon (não fazer antes de 12/10)
+## Reserve — Monday 12 Oct
 
-- [ ] Atestação do comprador via vault multisig (Squads).
-- [ ] Consulta sem carteira, por API HTTP, para financiadores tradicionais.
-- [ ] Prova de privacidade mais forte do hash (compromisso com sal compartilhado entre financiadores, ou provas de conhecimento zero).
-- [ ] Auditoria do programa e parecer jurídico sobre cessão de crédito por jurisdição.
-- [ ] Leitura do registro a partir de outras redes.
+- [ ] Only fixes that do not put the demo at risk.
+
+---
+
+## Pre-approved cuts (in this order)
+
+1. `/comprador` screen → attestation by script, shown in the explorer.
+2. `release_invoice` → described in the README as the next step.
+3. Fee charging → free locking in the demo, fee model only in the pitch.
+4. `/verificar` screen → the lookup appears inside `/financiador`.
+
+**Never cut:** duplicate seal rejected, second lender rejected, devnet deployment, `checkInvoice()` in the SDK.
+
+---
+
+## After the hackathon (do not do before 12 Oct)
+
+- [ ] Buyer attestation through a multisig vault (Squads).
+- [ ] Wallet-less lookup through an HTTP API, for traditional lenders.
+- [ ] Stronger privacy for the hash (a commitment with a salt shared among lenders, or zero-knowledge proofs).
+- [ ] Program audit and a legal opinion on receivables assignment by jurisdiction.
+- [ ] Reading the registry from other networks.
