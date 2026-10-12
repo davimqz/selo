@@ -48,7 +48,7 @@ function IdentityCard({ identity }: { identity: Identity | null | undefined }) {
   }
   return (
     <div className="card py-4 text-sm">
-      <span className="text-muted block text-xs">Verified identity</span>
+      <span className="caption block">Verified identity</span>
       {identity ? (
         <strong className="text-free">{identity.name}</strong>
       ) : (

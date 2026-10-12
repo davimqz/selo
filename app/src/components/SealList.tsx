@@ -82,7 +82,7 @@ export function SealList({
   return (
     <div className="card overflow-x-auto p-0">
       <table className="w-full text-left text-sm">
-        <thead className="bg-wash text-xs text-muted">
+        <thead className="bg-surface-alt text-xs text-muted">
           <tr className="border-b border-line">
             <th className="py-2.5 pr-4 font-medium first:pl-6">Invoice hash</th>
             <th className="py-2.5 pr-4 font-medium first:pl-6">Amount</th>

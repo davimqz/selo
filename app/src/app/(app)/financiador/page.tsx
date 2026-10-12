@@ -124,7 +124,7 @@ function LenderDesk({
         {desk && (
           <>
             <span>
-              <span className="text-muted block text-xs">Lender</span>
+              <span className="caption block">Lender</span>
               {desk.name ? (
                 <strong>{desk.name}</strong>
               ) : (
@@ -135,13 +135,11 @@ function LenderDesk({
               )}
             </span>
             <span>
-              <span className="text-muted block text-xs">Balance</span>
+              <span className="caption block">Balance</span>
               {usdcDev(desk.balance)}
             </span>
             <span>
-              <span className="text-muted block text-xs">
-                Lock fee per invoice
-              </span>
+              <span className="caption block">Lock fee per invoice</span>
               {usdcDev(desk.fee)}
             </span>
           </>

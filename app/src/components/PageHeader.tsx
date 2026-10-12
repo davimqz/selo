@@ -10,11 +10,9 @@ export function PageHeader({
 }) {
   return (
     <header className="mb-8 max-w-2xl">
-      {step && (
-        <p className="text-brand mb-2 text-sm font-medium">Step {step} of 3</p>
-      )}
-      <h1 className="heading-4">{title}</h1>
-      <p className="text-muted mt-2 leading-relaxed">{children}</p>
+      {step && <p className="badge badge-free mb-3">Step {step} of 3</p>}
+      <h1 className="heading-3">{title}</h1>
+      <p className="text-muted mt-2 text-base leading-relaxed">{children}</p>
     </header>
   );
 }

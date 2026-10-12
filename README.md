@@ -1,4 +1,6 @@
-# Selo
+<p align="center"><img src="app/public/logo.png" alt="Selo" width="320"></p>
+
+<p align="center"><b>One invoice. One lender. Ever.</b></p>
 
 **A public, neutral invoice registry on Solana that stops the same invoice from being financed twice.**
 

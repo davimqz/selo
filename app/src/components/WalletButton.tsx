@@ -32,7 +32,7 @@ export function WalletButton() {
         {account ? shortAddress(account.address) : "Connect wallet"}
       </button>
       {open && (
-        <div className="bg-paper absolute right-0 z-40 mt-2 w-72 rounded-xl p-2 shadow-[var(--shadow-raised)]">
+        <div className="bg-paper absolute right-0 z-40 mt-2 w-72 border-line rounded-[24px] border p-2 shadow-[var(--shadow-raised)]">
           {wallets.length === 0 && (
             <p className="p-2 text-sm text-muted">
               No Solana wallet found. Install Phantom and reload.
@@ -72,10 +72,10 @@ function WalletRow({
   const connected = wallet.accounts.length > 0;
 
   return (
-    <div className="rounded p-1">
+    <div className="p-1">
       <button
         type="button"
-        className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm font-medium hover:bg-wash"
+        className="flex w-full items-center gap-2 rounded-[18px] px-3 py-2 text-left text-sm font-medium hover:bg-wash"
         disabled={connecting}
         onClick={async () => {
           const accounts = await connect().catch(() => []);
@@ -93,7 +93,7 @@ function WalletRow({
         <button
           key={a.address}
           type="button"
-          className="block w-full rounded-md px-2 py-1.5 pl-9 text-left font-mono text-xs hover:bg-wash"
+          className="block w-full rounded-[18px] px-2 py-1.5 pl-10 text-left font-mono text-xs hover:bg-wash"
           onClick={() => onPick(a)}
         >
           {shortAddress(a.address)}

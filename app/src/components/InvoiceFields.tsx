@@ -107,19 +107,19 @@ export function HashPreview({
   hash: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-xl bg-[var(--gray-950)] text-xs leading-relaxed">
-      <div className="flex items-center justify-between border-b border-white/10 px-4 py-2 text-[#a8a9b4]">
+    <div className="border-line bg-surface-alt overflow-hidden rounded-[18px] border text-xs leading-relaxed">
+      <div className="border-line text-muted flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2">
         <span>Computed in your browser</span>
-        <span className="text-[#8f7aff]">only the hash goes on-chain</span>
+        <span className="badge badge-free">only the hash goes on-chain</span>
       </div>
       <div className="space-y-3 p-4 font-mono">
         <div>
-          <div className="text-[#a8a9b4]">canonical</div>
-          <div className="break-all text-white">{canonical}</div>
+          <div className="text-muted">canonical</div>
+          <div className="text-ink break-all">{canonical}</div>
         </div>
         <div>
-          <div className="text-[#a8a9b4]">sha256(canonical)</div>
-          <div className="break-all text-[#8f7aff]">{hash}</div>
+          <div className="text-muted">sha256(canonical)</div>
+          <div className="text-brand break-all font-medium">{hash}</div>
         </div>
       </div>
     </div>

@@ -139,7 +139,7 @@ export function DemoBar() {
 
   return (
     <div className="bg-brand-50 border-line border-b">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 text-sm sm:px-6">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 text-sm sm:px-6">
         <span className="text-brand font-medium">Demo mode</span>
         <span className="text-muted hidden md:inline">
           Real devnet transactions, signed with the local demo wallets.

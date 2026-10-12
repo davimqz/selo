@@ -1,57 +1,58 @@
 @import "tailwindcss";
 
 /*
- * Design tokens follow the Clerk design system: purple-500 as the single
- * primary, gray neutrals, layered shadows, rounded-2xl cards, 4px spacing.
- * Semantic names (paper, ink, free, stamp...) keep the app code readable.
+ * Design tokens: "clinical blueprint on frosted paper". Achromatic surfaces
+ * (canvas → surface-alt → paper), hairline borders, pill controls (18px) and
+ * 24px cards. One brand hue, the purple of the Selo mark, for emphasis; one
+ * red (ember) reserved for rejections and errors. Semantic names (paper, ink,
+ * free, stamp...) keep the app code readable.
  */
 :root {
-  --purple-500: #6c47ff;
-  --purple-600: #6430f7;
-  --purple-50: #f3f0ff;
-  --sky-500: #00aee3;
-  --green-500: #22c543;
-  --green-700: #15803d;
-  --red-500: #ef4444;
-  --red-700: #b91c1c;
-  --gray-50: #f7f7f8;
-  --gray-100: #eeeef0;
-  --gray-500: #747686;
-  --gray-900: #212126;
-  --gray-950: #131316;
-
+  --canvas: #f5f5f5;
   --paper: #ffffff;
-  --wash: var(--gray-50);
-  --ink: var(--gray-950);
-  --muted: var(--gray-500);
-  --line: var(--gray-100);
-  --free: var(--green-700);
-  --stamp: var(--red-700);
+  --surface-alt: #fafafa;
+  --ink: #0a0a0a;
+  --ink-soft: #171717;
+  --muted: #737373;
+  --line: #e5e5e5;
+  --ember: #e7000b;
+
+  --brand: #6b2cff;
+  --brand-600: #5a1ef0;
+  --brand-100: #e6dcff;
+  --brand-50: #f4efff;
+
+  --free: var(--brand);
+  --stamp: var(--ember);
+
+  --radius-control: 18px;
+  --radius-card: 24px;
+  --radius-nested: 10px;
 
   --shadow-card:
-    0 0 0 1px rgb(0 0 0 / 0.06), 0 1px 1px rgb(0 0 0 / 0.04),
-    0 2px 4px rgb(0 0 0 / 0.04), 0 8px 24px -4px rgb(0 0 0 / 0.06);
+    0 0 0 1px rgb(23 23 23 / 0.05), 0 1px 3px rgb(0 0 0 / 0.1),
+    0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-raised:
-    0 0 0 1px rgb(0 0 0 / 0.06), 0 2px 2px rgb(0 0 0 / 0.04),
-    0 8px 16px -4px rgb(0 0 0 / 0.08), 0 24px 48px -12px rgb(0 0 0 / 0.12);
-  --shadow-button:
-    0 0 0 1px var(--purple-600), 0 1px 1px rgb(0 0 0 / 0.08),
-    0 2px 4px -1px rgb(108 71 255 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.16);
+    0 0 0 1px rgb(23 23 23 / 0.05), 0 4px 6px -1px rgb(0 0 0 / 0.08),
+    0 12px 32px -8px rgb(0 0 0 / 0.12);
 }
 
 @theme inline {
+  --color-canvas: var(--canvas);
   --color-paper: var(--paper);
-  --color-wash: var(--wash);
+  --color-surface-alt: var(--surface-alt);
+  --color-wash: var(--canvas);
   --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-ember: var(--ember);
   --color-free: var(--free);
   --color-stamp: var(--stamp);
-  --color-brand: var(--purple-500);
-  --color-brand-600: var(--purple-600);
-  --color-brand-50: var(--purple-50);
-  --color-sky: var(--sky-500);
-  --color-gray-900: var(--gray-900);
+  --color-brand: var(--brand);
+  --color-brand-600: var(--brand-600);
+  --color-brand-100: var(--brand-100);
+  --color-brand-50: var(--brand-50);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -61,240 +62,328 @@ html {
 }
 
 body {
-  background: var(--paper);
+  background: var(--canvas);
   color: var(--ink);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.43;
+  font-feature-settings:
+    "ss01" on,
+    "cv11" on;
   -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
-  outline: 2px solid var(--purple-500);
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 
-/* Heading scale (Clerk heading-1..4), sentence case. */
-.heading-1 {
-  font-size: clamp(2.5rem, 6vw, 4rem);
-  line-height: 1.05;
-  font-weight: 700;
-  letter-spacing: -0.035em;
-}
-.heading-3 {
-  font-size: clamp(2rem, 4.5vw, 3rem);
-  line-height: 1.1;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-}
-.heading-4 {
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  line-height: 1.15;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+::selection {
+  background: var(--brand-100);
 }
 
-.devnet-banner {
-  background: var(--gray-950);
-  color: #fff;
-  text-align: center;
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 0.4rem 1rem;
-}
-.devnet-banner strong {
-  color: #ffd166;
-  font-weight: 600;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.375rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  white-space: nowrap;
-  transition:
-    background-color 0.15s,
-    box-shadow 0.15s;
-}
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.btn-primary {
-  background: var(--purple-500);
-  color: #fff;
-  box-shadow: var(--shadow-button);
-}
-.btn-primary:active:not(:disabled) {
-  background: var(--purple-600);
-}
-.btn-ghost {
-  background: var(--paper);
-  color: var(--ink);
-  box-shadow:
-    0 0 0 1px rgb(0 0 0 / 0.1),
-    0 1px 2px rgb(0 0 0 / 0.06);
-}
-.btn-ghost:hover:not(:disabled) {
-  background: var(--gray-50);
-}
-.btn-lg {
-  padding: 0.7rem 1.25rem;
-  font-size: 0.95rem;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--gray-900);
-}
-.field input {
-  background: var(--paper);
-  color: var(--ink);
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9375rem;
-  font-weight: 400;
-  box-shadow:
-    0 0 0 1px rgb(0 0 0 / 0.1),
-    0 1px 2px rgb(0 0 0 / 0.04);
-  transition: box-shadow 0.15s;
-}
-.field input::placeholder {
-  color: #a8a9b4;
-}
-.field input:focus {
-  outline: none;
-  box-shadow:
-    0 0 0 1px var(--purple-500),
-    0 0 0 4px rgb(108 71 255 / 0.15);
-}
-
-.card {
-  background: var(--paper);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-card);
-}
-
-.segmented {
-  display: inline-flex;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  border-radius: 0.5rem;
-  background: var(--gray-100);
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-.segmented button {
-  border-radius: 0.375rem;
-  padding: 0.3rem 0.75rem;
-  color: var(--gray-500);
-}
-.segmented button[aria-pressed="true"] {
-  background: var(--paper);
-  color: var(--ink);
-  box-shadow:
-    0 0 0 1px rgb(0 0 0 / 0.06),
-    0 1px 2px rgb(0 0 0 / 0.08);
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  border-radius: 9999px;
-  padding: 0.15rem 0.6rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-.badge::before {
-  content: "";
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 9999px;
-  background: currentColor;
-}
-.badge-free {
-  background: #e9f9ec;
-  color: var(--green-700);
-}
-.badge-locked {
-  background: #fdecec;
-  color: var(--red-700);
-}
-.badge-muted {
-  background: var(--gray-100);
-  color: var(--gray-500);
-}
-
-/* The rejection stamp: moments 4 and 5 of the demo. */
-.stamp {
-  background: #fef2f2;
-  color: var(--red-700);
-  border-radius: 0.75rem;
-  padding: 1rem 1.25rem;
-  box-shadow:
-    0 0 0 1px rgb(239 68 68 / 0.35),
-    0 0 0 4px rgb(239 68 68 / 0.08);
-  animation: stamp-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.3);
-}
-@keyframes stamp-in {
-  from {
-    transform: scale(1.05);
-    opacity: 0;
+@layer components {
+  /* Type scale: display 48 / heading-lg 36 / heading 30 / heading-sm 24. */
+  .heading-1 {
+    font-size: clamp(2.25rem, 5.5vw, 3rem);
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.05em;
   }
-  to {
-    transform: none;
-    opacity: 1;
+  .heading-2 {
+    font-size: clamp(1.875rem, 4vw, 2.25rem);
+    line-height: 1.11;
+    font-weight: 600;
+    letter-spacing: -0.025em;
   }
-}
-
-.success {
-  background: #effbf1;
-  color: var(--green-700);
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  box-shadow: 0 0 0 1px rgb(34 197 67 / 0.3);
-}
-
-/* Landing: the registry demo in the hero plays once on load. */
-.ledger-row {
-  animation: row-in 0.4s ease-out both;
-}
-.ledger-row:nth-child(2) {
-  animation-delay: 0.5s;
-}
-.ledger-row:nth-child(3) {
-  animation-delay: 1.3s;
-}
-.ledger-row:nth-child(3) .stamp {
-  animation: stamp-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3) 1.6s both;
-}
-@keyframes row-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
+  .heading-3 {
+    font-size: clamp(1.5rem, 3.5vw, 1.875rem);
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.025em;
   }
-  to {
-    opacity: 1;
-    transform: none;
+  .heading-4 {
+    font-size: 1.5rem;
+    line-height: 1.33;
+    font-weight: 600;
+    letter-spacing: -0.025em;
   }
-}
+  .caption {
+    font-size: 0.75rem;
+    line-height: 1.33;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
 
-.backdrop-grid {
-  background-image:
-    linear-gradient(to right, rgb(0 0 0 / 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(0 0 0 / 0.04) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: radial-gradient(ellipse at 70% 40%, #000 20%, transparent 70%);
+  .devnet-banner {
+    background: var(--ink);
+    color: #fafafa;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.4rem 1rem;
+  }
+  .devnet-banner strong {
+    color: #fff;
+    font-weight: 600;
+  }
+  .devnet-banner strong::before {
+    content: "";
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-right: 0.4rem;
+    border-radius: 9999px;
+    background: #a98bff;
+    vertical-align: 0.1em;
+  }
+
+  /* Buttons: pills, filled ink for the primary action, tonal siblings. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.25rem;
+    border-radius: var(--radius-control);
+    padding: 0 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition:
+      background-color 0.15s,
+      color 0.15s,
+      box-shadow 0.15s;
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: #fafafa;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #262626;
+  }
+  .btn-brand {
+    background: var(--brand);
+    color: #fff;
+  }
+  .btn-brand:hover:not(:disabled) {
+    background: var(--brand-600);
+  }
+  .btn-ghost {
+    background: var(--canvas);
+    color: var(--ink);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: #ebebeb;
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .btn-outline:hover:not(:disabled) {
+    background: var(--surface-alt);
+  }
+  .btn-sm {
+    height: 2rem;
+    padding: 0 0.75rem;
+    font-size: 0.8125rem;
+  }
+  .btn-lg {
+    height: 2.5rem;
+    padding: 0 1.125rem;
+  }
+
+  /* Fields: soft gray fill at rest, hairline ring on focus. */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .field input {
+    height: 2.25rem;
+    background: var(--canvas);
+    color: var(--ink);
+    border-radius: var(--radius-control);
+    padding: 0 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    transition:
+      background-color 0.15s,
+      box-shadow 0.15s;
+  }
+  .field input::placeholder {
+    color: var(--muted);
+  }
+  .field input:focus {
+    outline: none;
+    background: var(--paper);
+    box-shadow:
+      0 0 0 1px var(--brand),
+      0 0 0 4px rgb(107 44 255 / 0.12);
+  }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-card);
+  }
+
+  .segmented {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border-radius: var(--radius-control);
+    background: var(--canvas);
+    font-size: 0.8125rem;
+    font-weight: 500;
+  }
+  .segmented button {
+    border-radius: 14px;
+    padding: 0.3rem 0.75rem;
+    color: var(--muted);
+    transition: color 0.15s;
+  }
+  .segmented button:hover {
+    color: var(--ink);
+  }
+  .segmented button[aria-pressed="true"] {
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow:
+      0 0 0 1px rgb(23 23 23 / 0.06),
+      0 1px 2px rgb(0 0 0 / 0.08);
+  }
+
+  /* Badges: capsules. Brand for a live seal, solid ink once financed. */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: var(--radius-control);
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .badge::before {
+    content: "";
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: currentColor;
+  }
+  .badge-free {
+    background: var(--brand-50);
+    color: var(--brand);
+  }
+  .badge-locked {
+    background: var(--ink-soft);
+    color: #fafafa;
+  }
+  .badge-muted {
+    background: transparent;
+    color: var(--muted);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .badge-soft {
+    background: var(--canvas);
+    color: var(--ink-soft);
+  }
+  .badge-soft::before,
+  .badge-plain::before {
+    display: none;
+  }
+
+  /* The rejection stamp: moments 4 and 5 of the demo. */
+  .stamp {
+    background: #fff5f5;
+    color: var(--ember);
+    border-radius: var(--radius-nested);
+    padding: 1rem 1.25rem;
+    box-shadow: inset 0 0 0 1px rgb(231 0 11 / 0.3);
+    animation: stamp-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  }
+  @keyframes stamp-in {
+    from {
+      transform: scale(1.05);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+
+  .success {
+    background: var(--brand-50);
+    color: var(--ink-soft);
+    border-radius: var(--radius-nested);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    box-shadow: inset 0 0 0 1px var(--brand-100);
+  }
+  .success a {
+    color: var(--brand);
+  }
+
+  /* Landing: the registry demo in the hero plays once on load. */
+  .ledger-row {
+    animation: row-in 0.4s ease-out both;
+  }
+  .ledger-row:nth-child(2) {
+    animation-delay: 0.5s;
+  }
+  .ledger-row:nth-child(3) {
+    animation-delay: 1.3s;
+  }
+  .ledger-row:nth-child(3) .stamp {
+    animation: stamp-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3) 1.6s both;
+  }
+  @keyframes row-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Blueprint grid behind the hero. */
+  .backdrop-grid {
+    background-image:
+      linear-gradient(to right, rgb(0 0 0 / 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(0 0 0 / 0.045) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse at 50% 0%, #000 25%, transparent 70%);
+  }
+
+  details.faq summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  details.faq summary::-webkit-details-marker {
+    display: none;
+  }
+  details.faq summary .chev {
+    transition: transform 0.2s;
+  }
+  details.faq[open] summary .chev {
+    transform: rotate(45deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
