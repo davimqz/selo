@@ -4,6 +4,8 @@ The five demo moments from the [project brief](../CLAUDE.md#2-golden-rule-6-days
 running in the browser against devnet. Nothing here uses real money: devnet SOL and `USDC-dev`
 are test tokens.
 
+> **Recorded demo:** [the five moments on YouTube](https://www.youtube.com/watch?v=keZ3Au-Aty0).
+
 > **Just want to see it work?** No wallet needed: open
 > [`/verificar`](https://selo-iota-three.vercel.app/verificar), choose **Invoice hash** and paste
 > `987403bcf71b7cb4655aeb1bd500703888890f56eea9cf36411e9b9786c0c90c`, an invoice already financed

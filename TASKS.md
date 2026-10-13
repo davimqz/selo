@@ -57,11 +57,11 @@ done**. Decision rule: `CLAUDE.md` Section 2.
 
 ## Day 4 — Saturday 10 Oct · Publish and record the demo
 
-- [ ] Deploy to Vercel and test in a private window with another wallet.
+- [x] Deploy to Vercel and test in a private window with another wallet.
 - [x] Complete README (`CLAUDE.md` Section 13), with a code snippet using `checkInvoice()`.
 - [x] Update `docs/pitch.md` with real validation (or remove the validation sentence).
 - [x] 8 pitch slides.
-- [ ] Record the technical video of the five moments.
+- [x] Record the technical video of the five moments: <https://www.youtube.com/watch?v=keZ3Au-Aty0>.
 
 **Definition of done**: public app working and technical video recorded.
 
@@ -69,8 +69,8 @@ done**. Decision rule: `CLAUDE.md` Section 2.
 
 ## Day 5 — Sunday 11 Oct · Record the pitch and submit
 
-- [ ] Recheck the pitch numbers and time it (target 2:45).
-- [ ] Record the pitch.
+- [x] Recheck the pitch numbers and time it (target 2:45).
+- [x] Record the pitch: <https://www.youtube.com/watch?v=FW5T28l-9iA>.
 - [ ] Review eligibility and the form fields.
 - [ ] **Submit today.** Merge `dev` into `main` and freeze.
 

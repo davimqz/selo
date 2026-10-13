@@ -7,6 +7,8 @@
 </p>
 
 <p align="center">
+  <a href="https://www.youtube.com/watch?v=FW5T28l-9iA"><img alt="Pitch video" src="https://img.shields.io/badge/pitch-video-6B2CFF"></a>
+  <a href="https://www.youtube.com/watch?v=keZ3Au-Aty0"><img alt="Demo video" src="https://img.shields.io/badge/demo-video-6B2CFF"></a>
   <a href="https://selo-iota-three.vercel.app"><img alt="Live app" src="https://img.shields.io/badge/app-live%20on%20devnet-6B2CFF"></a>
   <a href="https://explorer.solana.com/address/4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio?cluster=devnet"><img alt="Program on devnet" src="https://img.shields.io/badge/program-devnet-0A0A0A"></a>
   <img alt="Tests" src="https://img.shields.io/badge/tests-122%20passing-0A0A0A">
@@ -30,6 +32,8 @@ one. Only a hash goes on-chain.
 
 | | |
 |---|---|
+| Pitch video | [youtube.com/watch?v=FW5T28l-9iA](https://www.youtube.com/watch?v=FW5T28l-9iA) |
+| Demo video (the five moments) | [youtube.com/watch?v=keZ3Au-Aty0](https://www.youtube.com/watch?v=keZ3Au-Aty0) |
 | Live app | [selo-iota-three.vercel.app](https://selo-iota-three.vercel.app) |
 | Program ID (devnet) | [`4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio`](https://explorer.solana.com/address/4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio?cluster=devnet) |
 | Fee mint, `USDC-dev` (test token) | [`Gj8cs9urnjgy29Nz3k5EQNrJZLbapCDSi55X4SU4xAqv`](https://explorer.solana.com/address/Gj8cs9urnjgy29Nz3k5EQNrJZLbapCDSi55X4SU4xAqv?cluster=devnet) |
@@ -59,6 +63,7 @@ one. Only a hash goes on-chain.
 
 | What a judge may look for | Where |
 |---|---|
+| Videos | [Pitch](https://www.youtube.com/watch?v=FW5T28l-9iA), [demo of the five moments](https://www.youtube.com/watch?v=keZ3Au-Aty0) |
 | Working product | [Live app](https://selo-iota-three.vercel.app), [program on devnet](https://explorer.solana.com/address/4zmhCsPLVfk7UEnEgpNfUTCcoXFX2tPbjyJtVit7Mhio?cluster=devnet), [demo guide](docs/demo.md) |
 | Why Solana | [What Selo is](#what-selo-is-and-is-not), [architecture](docs/ARCHITECTURE.md#why-solana) |
 | Technical depth | [Architecture](docs/ARCHITECTURE.md), [program reference](#program-reference), [122 tests](#testing) |

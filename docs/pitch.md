@@ -3,6 +3,8 @@
 The script for the pitch video (target 2:45, limit 3:00), the numbers behind it and answers to the
 questions judges are likely to ask. The script follows the 8-slide deck; each section is one slide.
 
+> **Recorded pitch:** [watch on YouTube](https://www.youtube.com/watch?v=FW5T28l-9iA).
+
 ## Script
 
 | # | Slide | Time |
